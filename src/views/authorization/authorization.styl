@@ -1,0 +1,95 @@
+@import '~@/assets/stylus/mixin'
+#authorization
+  .auth-header
+    height 80px
+    background-color: #fff
+    div
+      float left
+      &:nth-of-type(1)
+        height 100%
+        img
+          display: inline-block
+          vertical-align: middle
+          margin-top: 23px
+          margin-left: 50px
+      &:nth-of-type(2)
+        position relative
+        font-size: 32px
+        padding-right: 20px
+        line-height: 80px
+        color: #333
+        margin-left: 10px
+        &:after
+          position: absolute
+          height: 32px
+          width: 1px
+          content: ''
+          background-color: #333333
+          right 0
+          top: 24px
+      &:nth-of-type(3)
+        font-size: 32px
+        padding-left: 20px
+        line-height: 80px
+        color: #333
+  .auth-main
+    padding-top: 50px
+    text-align: center
+    .auth-title
+      font-size: 22px
+    .auth-wrapper
+      width: 350px
+      margin: 0 auto
+      box-shadow 0px 1px 18px 0px #e5e5e5
+      border-radius: 3px
+      .auth-item
+        background-color: #fff
+        margin-top: 50px
+        padding: 30px
+        color: #333
+        .auth-img
+          margin-top: 30px
+        .auth-loading
+          position: relative
+          width: 46px
+          height: 46px
+          margin: auto
+        .result
+          margin-top: 24px  
+          font-size: 16px
+        .tips
+          margin-top: 8px
+        .float-btn
+          margin-top: 30px
+          margin-bottom: 10px
+          clear()
+          .left
+            width: 120px
+            float left
+          .right
+            width: 120px
+            float right
+        .single-btn
+          margin-top: 30px
+          margin-bottom: 10px
+          button
+            width: 120px
+      .end-end
+        padding 35px 20px 60px
+        text-align: left
+        clear()
+        .left
+          background-color: #ffffff
+          border-radius: 50%
+          width 40px
+          height 40px
+          padding-top: 7px
+          float left
+          text-align: center
+          img
+            display: inline-block
+        .right
+          line-height: 20px
+          float: left
+          padding-left: 10px
+          width: 260px

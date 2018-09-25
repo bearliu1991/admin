@@ -1,0 +1,124 @@
+@import 'variable.styl'
+@import 'mixin.styl'
+body, html
+  line-height 1
+  font-family 'PingFang SC', 'STHeitiSC-Light', 'Helvetica-Light', arial, sans-serif, 'Droid Sans Fallback'
+  font-size 14px
+  height 100%
+  width 100%
+  -webkit-tap-highlight-color transparent
+  background $color-background
+  color $color-text
+// .ivu-input
+// height: 40px
+// line-height: 40px
+// font-size: 14px
+.ivu-btn-primary[disabled]
+  color #fff
+.ivu-btn-primary[disabled]:hover
+  color #fff
+.spin-icon-load
+  animation ani-spin 1s linear infinite
+@keyframes ani-spin
+  from
+    transform rotate(0deg)
+  50%
+    transform rotate(180deg)
+  to
+    transform rotate(360deg)
+.ivu-select-dropdown
+  box-shadow 0px 2px 6px 0px rgba(0, 0, 0, 0.35)
+  .userDrop
+    max-width 221px
+    margin 0
+    padding-bottom 10px
+    .ivu-dropdown-item
+      no-wrap()
+      padding 7px 35px 7px 16px
+      color #6f6f6f
+      transition background-image 0.2s ease-in-out
+      &:hover
+        color #fff
+        background-color rgb(74, 171, 253)
+        background-image linear-gradient(90deg, #5fc5fa 0%, #409eff 100%), linear-gradient(#000000, #000000)
+        background-blend-mode normal, normal
+      .ivu-icon
+        vertical-align none
+        margin-right 10px
+.ivu-tooltip-inner
+  background-color #303133
+box-shadow 0px 2px 6px 0px rgba(0, 0, 0, 0.8)
+  border-radius 3px
+.ivu-modal-content
+  padding-left 20px
+  padding-right 20px
+  .ivu-modal-close .ivu-icon-ios-close-empty:hover
+    color #409eff
+  .ivu-modal-header
+    padding-left 0
+    padding-top 20px
+    span
+      color #303133
+      font-size 18px
+  .ivu-modal-body
+    font-size 14px
+    padding-left 0
+    padding-right 0
+  .ivu-modal-footer
+    border-top none
+    padding 20px 0
+    .ivu-btn
+      padding-top 4.5px
+      padding-bottom 4.5px
+      margin-left 20px
+.noWrap
+  clear()
+  no-wrap()
+  .inbl
+    float left
+    width 115px
+    line-height 30px
+    no-wrap()
+  img
+    width 30px !important
+    height 30px !important
+  div
+    margin-left 6px !important
+.ivu-btn
+  padding 8.5px 15px
+.ivu-btn-small
+  padding 3.5px 7px
+.ivu-table-wrapper
+  border none
+.ivu-table:before
+  height 0
+.ivu-table:after
+  width 0
+.ivu-input
+  font-size 15px
+.ivu-form-item-error .ivu-input-group-with-prepend .ivu-input
+  box-shadow none
+  border-left-color #d7dde4
+  &:hover, :focus, :active
+    border-left-color #d7dde4
+    box-shadow none
+.isHideAction
+  display none
+
+.ivu-checkbox-checked .ivu-checkbox-inner:after
+  content ''
+  display table
+  width 4px
+  height 8px
+  position absolute
+  top 1px
+  left 4px
+  border 2px solid #fff
+  border-top 0
+  border-left 0
+  transform rotate(45deg) scale(1)
+  -webkit-transform rotate(45deg) scale(1)
+  transition all 0.2s ease-in-out
+  z-index 100
+.ivu-tabs .ivu-tabs-tabpane
+  position relative  
