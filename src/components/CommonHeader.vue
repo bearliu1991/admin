@@ -3,8 +3,8 @@
     <div class="header-left">
       <div class="icon">
         <router-link tag="div" :to="{name:'home'}">
-          <img src="@/assets/images/icon.png" alt="icon">
-          <div class="text">迎客通</div>
+          <img src="http://xingke100.com/logo.png" alt="icon">
+          <div class="text">销大师</div>
         </router-link>
       </div>
     </div>
@@ -13,16 +13,13 @@
         <MenuItem name="home">
           首页
         </MenuItem>
-        <MenuItem name="company">
+        <MenuItem name="product">
           产品介绍
         </MenuItem>
-        <MenuItem name="personInfo">
-          客户案例
+        <MenuItem name="service">
+          服务优势
         </MenuItem>
-        <MenuItem name="4">
-          使用帮助
-        </MenuItem>
-        <MenuItem name="5">
+        <MenuItem name="contact">
           联系我们
         </MenuItem>
       </Menu>
@@ -33,11 +30,11 @@
           <router-link to="/login">登录</router-link>
         </div>
         <div>
-          <router-link tag="p" :to="{name:'register', params:{step:0}}">免费试用</router-link>
+          <p @click="toRegister">免费试用</p>
         </div>
       </div>
       <div class="login-after" v-show="userStatus == 2">
-        <Dropdown trigger="hover" :transfer="true" @on-click="enterRoute">
+        <Dropdown trigger="click" @on-click="enterRoute">
           <div class="user">
             <div class="user-img">
               <img v-if="userStatus == 2" :src="userInfo.picUrl" alt="userImg">
@@ -47,7 +44,7 @@
           </div>
           <DropdownMenu slot="list" class="userDrop">
             <DropdownItem name="company"><Icon size="16" type="home"></Icon>我的企业</DropdownItem>
-            <DropdownItem name="personInfo"><Icon size="16" type="person"></Icon>个人中心</DropdownItem>
+            <DropdownItem name="personInfo"><Icon size="16" type="person"></Icon>个人信息</DropdownItem>
             <DropdownItem name="quit"><Icon size="16" type="power"></Icon>退出登录</DropdownItem>
           </DropdownMenu>
         </Dropdown>
@@ -56,8 +53,9 @@
   </div>
 </template>
 <script>
-import { getToken, removeToken, removeCookie } from '@/assets/js/cookies'
+import { getToken, removeToken, removeCookie, removeCookieSession } from '@/utils/cookies'
 import { logout } from '@/api/query'
+import {mapActions} from 'vuex'
 export default {
   data() {
     return {
@@ -77,9 +75,8 @@ export default {
       }
     },
     selectMenu(name) {
-      if (name === 'home') {
-        this.$router.push({ name: name })
-      }
+      this.setAnchor(name)
+      this.$router.push({ name: 'home' })
     },
     isLogin() {
       if (this.userInfo) {
@@ -92,21 +89,46 @@ export default {
       logout().then(data => {
         if (data.code === 1) {
           removeToken()
+          removeCookieSession()
           removeCookie('accountList')
           removeCookie('currentCorp')
+          removeCookie('preAuthCode')
+          removeCookie('saveStepsData')
+          removeCookie('companyParams')
+          removeCookie('seatsInfo')
+          removeCookie('orderId')
+          removeCookie('corpId')
+          removeCookie('orderPayPrice')
+          removeCookie('isCreatCompany')
+          removeCookie('corpName')
+          removeCookie('nextOrderStep')
           this.$router.push({ name: 'login' })
         }
       })
-    }
+    },
+    toRegister() {
+      this.setStep(0)
+      this.$router.push({name: 'register'})
+    },
+    ...mapActions({
+      setStep: 'user/setStep',
+      setAnchor: 'user/setAnchor'
+    })
   }
 }
 </script>
 <style lang="stylus" rel="stylesheet/stylus">
 @import '~@/assets/stylus/mixin'
 .header
+  position fixed
   height 60px
+  top 0
+  left 0
   border-bottom solid 1px #dcdee2
   background-color #fff
+  z-index 50
+  width 100%
+  min-width 1057px
   clear()
   .header-left
     float left
@@ -116,8 +138,10 @@ export default {
       cursor pointer
       clear()
       img
+        width 33px
+        height 32px
         float left
-        margin-top 16px
+        margin-top 14px
       .text
         float left
         font-size 21px
@@ -135,15 +159,25 @@ export default {
     .login-before
       clear()
       div
+        margin-top 13px
         float left
-        padding 7px 12px
-        margin-top 17px
         cursor pointer
+        height 34px
+        line-height 34px
+        border-radius 3px
+        text-align center
+        a
+          color #409eff
+          display inline-block
+          width 100%
+          height 100%
         &:nth-of-type(1)
           margin-right 34px
+          width 90px
+          border: solid 1px #409eff 
         &:nth-of-type(2)
+          width 110px
           background-color #409eff
-          border-radius 4px
           color #fff
     .login-after
       cursor pointer

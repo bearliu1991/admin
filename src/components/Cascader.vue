@@ -1,5 +1,5 @@
 <template>
-  <div v-show="showCascaderModal" class="cascader" @click.stop>
+  <div v-show="showCascaderModal" :class="{cascader:type==='selectArea',drawerCascader:type==='drawerArea'}" @click.stop>
     <div class="cascader-wrapper">
       <div class="cascader-select">
         <div class="cascader-select-item" :class="{'select-item-active':selectIndex==0}" @click.stop="selectArea(0)">
@@ -42,7 +42,6 @@
         </div>
       </div>
     </div>
-    
   </div>
 </template>
 
@@ -53,6 +52,10 @@ export default {
     showCascaderModal: {
       type: Boolean,
       default: false
+    },
+    type: {
+      type: String,
+      default: 'selectArea'
     }
   },
   data() {
@@ -168,46 +171,48 @@ export default {
   text-align left
   background-color #fff
   padding 10px 20px 5px
-  .cascader-wrapper
-    .cascader-select
-      padding-bottom 20px
-      border-bottom solid 1px #e6e6e6
-      .cascader-select-item
-        display inline-block
-        height 28px
-        margin-right 40px
-        padding 6px 23px
-        cursor pointer
-        border-radius 5px
-        &.select-item-active
-          background-color #3d96f2
-          color #fff
-        &:hover
-          background-color #3d96f2
-          color #fff
-    .cascader-content
-      .area
-        clear()
-        margin-top 19px
-        .area-item
-          float left
-          width 25%
-          margin-bottom 17px
-          .area-text
-            display inline-block
-            height 28px
-            padding 6px 15px
-            cursor pointer
-            border-radius 5px
-            &.active
-              background-color #3d96f2
-              color #fff
-            &:hover
-              background-color #3d96f2
-              color #fff
-      .area-img
-        position relative
-        height 220px
+.drawerCascader
+  text-align left 
+.cascader-wrapper
+  .cascader-select
+    padding-bottom 20px
+    border-bottom solid 1px #e6e6e6
+    .cascader-select-item
+      display inline-block
+      height 28px
+      margin-right 40px
+      padding 6px 23px
+      cursor pointer
+      border-radius 5px
+      &.select-item-active
+        background-color #3d96f2
+        color #fff
+      &:hover
+        background-color #3d96f2
+        color #fff
+  .cascader-content
+    .area
+      clear()
+      margin-top 19px
+      .area-item
+        float left
+        width 25%
+        margin-bottom 17px
+        .area-text
+          display inline-block
+          height 28px
+          padding 6px 15px
+          cursor pointer
+          border-radius 5px
+          &.active
+            background-color #3d96f2
+            color #fff
+          &:hover
+            background-color #3d96f2
+            color #fff
+    .area-img
+      position relative
+      height 220px
 </style>
 
 

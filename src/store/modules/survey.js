@@ -10,13 +10,16 @@ const state = {
   // 关键指标
   keyIndicatorsData: {
     loadingDataStatu: 1
-  }
+  },
+  // 公司信息
+  saveloginCompany: {}
 }
 const getters = {
   getCorpPackage: state => state.corpPackageData,
   getCorpInfo: state => state.corpInfoData,
   getLoginCompany: state => state.loginCompanyData,
-  getKeyIndicators: state => state.keyIndicatorsData
+  getKeyIndicators: state => state.keyIndicatorsData,
+  getSaveloginCompany: state => state.saveloginCompany
 }
 const mutations = {
   SET_CORPPACKAGE(state, corpPackageData) {
@@ -30,12 +33,18 @@ const mutations = {
   },
   SET_KEYINDICATORS(state, keyIndicatorsData) {
     state.keyIndicatorsData = keyIndicatorsData
+  },
+  SET_SAVELOGINCOMPANY(state, saveloginCompany) {
+    state.saveloginCompany = saveloginCompany
   }
 }
 const actions = {
   // 用户名登录
   setCorpPackage({commit}, corpPackageData) {
     commit('SET_CORPPACKAGE', corpPackageData)
+  },
+  setSaveloginCompany({commit}, saveloginCompany) {
+    commit('SET_SAVELOGINCOMPANY', saveloginCompany)
   },
   setCorpInfo({commit}, corpInfoData) {
     commit('SET_CORPINFO', corpInfoData)

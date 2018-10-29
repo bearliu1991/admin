@@ -3,6 +3,7 @@
  */
 
 import api from './index'
+// import {getCookie} from '../utils/cookies'
 const apiHost = process.env.API_ROOT
 // 预览上传的fastfds服务的文件
 // const preview_file = process.env.FILESERVER_ROOT 
@@ -15,10 +16,16 @@ export const downloadPostcard = (params) => {
 }
 // 获得sessionId
 export const getSessionId = () => api.get(apiHost + '/getSessionId')
+
 // 生成二维码
 export const getTmpQrcode = (params) => api.get(apiHost + '/api/adminUser/getTmpQrcode', params)
 // 获取用户信息,企业信息等
-export const getSession = () => api.get(apiHost + '/api/adminUser/getSession')
+export const getSession = () => {
+    // setCookie("loginFlag", "0", 1)
+    // let loginFlag = getCookie("loginFlag")
+    
+    return api.get(apiHost + '/api/adminUser/getSession')
+}
 // 获取默认免费信息 套餐id 套餐角色id 官方appid对应的accountid
 export const getDefaultInfo = () => api.get(apiHost + '/api/adminUser/getDefaultInfo')
 // 生成验证码
@@ -37,6 +44,8 @@ export const updateCorpName = (params) => api.get(apiHost + '/api/adminCenter/up
 export const editUser = (params) => api.get(apiHost + '/api/adminCenter/editUser', params)
 // 离开公司
 export const savelogoutCompany = (params) => api.get(apiHost + '/api/adminCenter/savelogoutCompany', params)
+// 修改公司和公司申请状态
+export const updateCorpStatusByCorpId = (params) => api.get(apiHost + '/api/adminCenter/updateCorpStatusByCorpId', params)
 // 新建企业检查
 export const checkCreateCorpApply = () => api.get(apiHost + '/api/adminCenter/checkCreateCorpApply')
 // 退出
@@ -49,6 +58,8 @@ export const getScanResult = (params) => api.get(apiHost + '/api/adminCenter/get
 export const getPersonalInfo = () => api.get(apiHost + '/api/adminCenter/getPersonalInfo')
 // 获得关键指标
 export const getKeyIndicators = (params) => api.get(apiHost + '/api/survey/getKeyIndicators', params)
+// 获得公司状态
+export const queryCompanyStats = (params) => api.get(apiHost + '/api/survey/queryCompanyStats', params)
 // 进入公司信息
 export const saveloginCompany = (params) => api.get(apiHost + '/api/survey/saveloginCompany', params)
 // 获取公司统计信息
@@ -58,7 +69,7 @@ export const queryCorpPackageById = (params) => api.get(apiHost + '/api/survey/q
 // 查看授权状态
 export const updateBindCorp = (params) => api.get(apiHost + '/api/survey/updateBindCorp', params)
 // 获取公众号列表
-export const getPublicAccountList = () => api.get(apiHost + '/api/tencent/getPublicAccountList')
+export const getPublicAccountList = (params) => api.get(apiHost + '/api/tencent/getPublicAccountList', params)
 // 判断是否可以添加公众号
 export const checkAppIdNum = () => api.get(apiHost + '/api/tencent/checkAppIdNum')
 // 删除微信公众号
@@ -92,7 +103,7 @@ export const getIntoSeatList = (params) => api.get(apiHost + '/api/seats/getInto
 // 点击添加坐席生成坐席编号
 export const saveSeatNo = (params) => api.get(apiHost + '/api/seats/saveSeatNo', params)
 // 保存坐席接口
-export const saveSeat = (params) => api.get(apiHost + '/api/seats/saveSeat', params)
+export const saveSeat = (params) => api.post(apiHost + '/api/seats/saveSeat', params)
 // 修改坐席接口
 export const updateSeat = (params) => api.get(apiHost + '/api/seats/updateSeat', params)
 // 获取坐席详情接口
@@ -110,4 +121,22 @@ export const updateSeatBaseInfo = (params) => api.get(apiHost + '/api/seats/upda
 // 修改坐席权限接口
 export const updateSeatAuth = (params) => api.get(apiHost + '/api/seats/updateSeatAuth', params)
 // 修改个性化坐席接口
-export const updateConditionalSeat = (params) => api.get(apiHost + '/api/seats/updateConditionalSeat', params)
+export const updateConditionalSeat = (params) => api.post(apiHost + '/api/seats/updateConditionalSeat', params)
+// 是否存在待支付订单
+export const getExistOrder = (params) => api.get(apiHost + '/api/pay/getExistOrder', params)
+// 获取公司当前订购服务
+export const getCurOrderDetail = (params) => api.get(apiHost + '/api/pay/getCurOrderDetail', params)
+// 保存订单
+export const saveOrderInfo = (params) => api.get(apiHost + '/api/pay/saveOrderInfo', params)
+// 保存创建公司并创建订单
+export const saveCorpCreateApplyForOrder = (params) => api.get(apiHost + '/api/pay/saveCorpCreateApplyForOrder', params)
+// 进入确认付款页,扫码支付后,轮询查询订单简单详情
+export const getSimpleDetail = (params) => api.get(apiHost + '/api/pay/getSimpleDetail', params)
+// 订单详情(管理平台)
+export const getOrderDetail = (params) => api.get(apiHost + '/api/pay/getOrderDetail', params)
+// 付款凭证确认银行汇款
+export const savePayVoucherTradeOrder = (params) => api.get(apiHost + '/api/pay/savePayVoucherTradeOrder', params)
+// 付款方名称账号确认银行汇款
+export const saveAccountTradeOrder = (params) => api.get(apiHost + '/api/pay/saveAccountTradeOrder', params)
+// 是否能上传凭证
+export const isCanPayVoucher = (params) => api.get(apiHost + '/api/pay/isCanPayVoucher', params)

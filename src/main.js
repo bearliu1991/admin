@@ -5,23 +5,17 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 import store from './store'
-import utils from './assets/utils/index'
+import utils from '@/utils/index'
 import iView from 'iview'
 import 'iview/dist/styles/iview.css'
 import '@/assets/stylus/iview.less'
 import '@/assets/stylus/index.styl'
-import '@/assets/js/compatibility'
-import strPro from '@/assets/js/methods'
+import '@/utils/compatibility'
+import strPro from '@/utils/methods'
 import '@/router/routerBefore'
-// import dataLoading from '@/components/dataLoading/dataLoading'
-// import scrollBar from '@/components/scrollBar/scrollBar'
-// import commonModal from '@/components/modal/modal'
-// import TreeList from '@/components/treelist/treelist'
-// Vue.component('commonModal', commonModal)
-// Vue.component('dataLoading', dataLoading)
-// Vue.component('scrollBar', scrollBar)
-// Vue.component('TreeList', TreeList)
+import VueQriously from "vue-qriously"
 
+Vue.use(VueQriously)
 Vue.use(iView)
 Vue.use(strPro)
 Vue.use(utils)

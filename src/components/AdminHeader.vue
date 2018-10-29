@@ -5,7 +5,7 @@
         <img src="@/assets/images/navbig/navDown.png" alt="">
       </div>
       <div class="company header-item">
-        <Dropdown trigger="click" :transfer="true" @on-click="selectCompany">
+        <Dropdown trigger="click" :transfer="false" @on-click="selectCompany">
           <div class="user">
             <div class="user-name" :title="currentCorp.corpName">
               {{currentCorp.corpName}}
@@ -18,7 +18,7 @@
         </Dropdown>
       </div>
       <div class="combo header-item">
-        <Tooltip placement="top">
+        <Tooltip :transfer="true" placement="top">
           <div class="combo-wrapper">
             <span class="combo-item">当前套餐：</span>
             <span class="combo-item">{{corpPackageData.packageName}}</span>
@@ -26,30 +26,31 @@
           <div slot="content">
             <p>
               <span>到期时间：</span>
-              <span>{{corpPackageData.endDate}}</span>
+              <span>{{corpPackageData.endDate || 0}}</span>
             </p>
             <p>
               <span>剩余天数：</span>
-              <span v-show="corpPackageData.remainingTime>=0">{{corpPackageData.remainingTime}}</span>
+              <span v-show="corpPackageData.remainingTime>=0">{{corpPackageData.remainingTime || 0}}</span>
+              <span v-show="corpPackageData.remainingTime<0">0</span>
             </p>
             <p>
-              <span>可绑定公众号数</span>
-              <span>{{corpPackageData.officialAccountsNum}}</span>
+              <span>可绑定公众号数：</span>
+              <span>{{corpPackageData.officialAccountsNum || 0}}</span>
             </p>
             <p>
-              <span>坐席数</span>
-              <span>{{corpPackageData.seatNum}}</span>
+              <span>坐席数：</span>
+              <span>{{corpPackageData.seatNum || 0}}</span>
             </p>
             <p>
-              <span>员工人数</span>
-              <span>{{corpPackageData.employeeNum}}</span>
+              <span>员工人数：</span>
+              <span>{{corpPackageData.employeeNum || 0}}</span>
             </p>
           </div>
         </Tooltip>
-        <span class="leavel-up">套餐升级</span>
+        <span class="leavel-up" @click="upgrade">套餐升级</span>
       </div>
       <div class="user-header header-item">
-        <Dropdown trigger="hover" :transfer="true" @on-click="enterRoute">
+        <Dropdown trigger="hover" :transfer="false" @on-click="enterRoute">
           <div class="user">
             <div class="user-img">
               <img v-if="userStatus == 2" :src="userInfo.picUrl" alt="userImg">
@@ -59,12 +60,13 @@
           </div>
           <DropdownMenu slot="list" class="userDrop">
             <DropdownItem name="company"><Icon size="16" type="home"></Icon>我的企业</DropdownItem>
-            <DropdownItem name="personInfo"><Icon size="16" type="person"></Icon>个人中心</DropdownItem>
+            <DropdownItem name="personInfo"><Icon size="16" type="person"></Icon>个人信息</DropdownItem>
             <DropdownItem name="quit"><Icon size="16" type="power"></Icon>退出登录</DropdownItem>
           </DropdownMenu>
         </Dropdown>
       </div>
     </div>
+    <common-modal ref="cropTips" :closable="false" :maskClosable="false" :header="header" :content="content" @ok="goToCrop" confrim="知道了" :cancelBtn="false"></common-modal>
   </div>
 </template>
 <script>
@@ -74,8 +76,9 @@ import {
   removeToken,
   getCookie,
   setCookie,
-  removeCookie
-} from '@/assets/js/cookies'
+  removeCookie,
+  removeCookieSession
+} from '@/utils/cookies'
 import {
   getUserCorpAuthMulti,
   logout,
@@ -86,11 +89,14 @@ import {
   getKeyIndicators,
   queryCorpPackRoleList
 } from '@/api/query'
-import { DateDiff, divideGroup } from '@/assets/js/util'
+import { DateDiff } from '@/utils/util'
+const minuTimer = 3 * 60 * 1000
 export default {
   name: 'adminHeader',
   data() {
     return {
+      header: '',
+      content: '',
       showNav: '',
       userInfo: getToken() || null,
       userStatus: 1,
@@ -98,6 +104,7 @@ export default {
       corpData: [],
       sameName: '',
       timer: null,
+      corpStatusTimer: null,
       closeLoop: true,
       systems: [
         {
@@ -119,14 +126,16 @@ export default {
     this.$root.Bus.$on('accountDataToDb', () => {
       this.intervalLoop()
     })
-    this.$root.Bus.$on('regainCompanyInfo', () => {
-      this.saveloginCompany()
+    this.$root.Bus.$on('regainCompanyInfo', (name) => {
+      this.saveloginCompany(name)
     })
   },
   mounted() {
-    this.sameName = this.currentCorp.corpName
+    if (!getCookie('currentCorp')) {
+      this.$router.push({name: 'company'})
+    }
+    this.sameName = getCookie('currentCorp').corpName
     this.isLogin()
-    this.getUserCorpAuthMulti()
     this.saveloginCompany()
     this.showNav = this.collapsed
   },
@@ -137,42 +146,101 @@ export default {
       }
       queryCorpPackRoleList(params).then(data => {
         if (data.code === 1) {
-          let arr = divideGroup(data.data, 'groupName')
-          // let obj = {}
-          // for (let item of data.data) {
-          //     obj[item.groupName] = obj[item.groupName] || {}
-          //     obj[item.groupName].name = item.groupName
-          //     obj[item.groupName].data = obj[item.groupName].data || []
-          //     obj[item.groupName].data.push({
-          //         cont: item.roleName,
-          //         id: item.roleId,
-          //         groupName: item.groupName,
-          //         isSelect: false
-          //     })
-          // }
-          // this.systems[0].obj = obj
-          // console.log(this.systems)
-          this.setCorpPackRoleList(arr)
+          // let arr = divideGroup(data.data, 'groupName')
+          let obj = {}
+          for (let item of data.data) {
+            obj[item.groupName] = obj[item.groupName] || {}
+            obj[item.groupName].name = item.groupName
+            obj[item.groupName].data = obj[item.groupName].data || []
+            obj[item.groupName].data.push({
+              cont: item.roleName,
+              id: item.roleId,
+              groupName: item.groupName,
+              isSelect: false
+            })
+          }
+          this.systems[0].obj = obj
+          this.setCorpPackRoleList(this.systems)
         }
+      })
+    },
+    // 查询公司状态
+    queryCompanyStats() {
+      this.$get(this.fylPath.getCorpEmpPacStatus).then((data) => {
+        switch (data.data.corpStatus) {
+          case 'ACTIVE':
+            break
+          case 'DISABLE':
+            this.header = '停用提示'
+            this.content = '该企业已被停用，请联系企业管理员或销大师客服人员。'
+            clearInterval(this.corpStatusTimer)
+            this.$refs.cropTips.showModal()
+            break
+          case 'FORBIDDEN':
+            this.header = '禁用提示'
+            this.content = '抱歉，该企业已被禁用，您暂时无法操作，请联系销大师客服人员。'
+            clearInterval(this.corpStatusTimer)
+            this.$refs.cropTips.showModal()
+            break
+          case 'EXPIRE':
+            this.header = '已过期提示'
+            this.content = '该企业套餐已过期，请升级后继续使用。如有问题，请咨询销大师客服人员，谢谢。'
+            clearInterval(this.corpStatusTimer)
+            this.$refs.cropTips.showModal()
+            break  
+          default:
+            break
+        }
+        switch (data.data.employeeStatus) {
+          case 1:
+            break
+          case 2:
+            this.header = '停用提示'
+            this.content = '该员工已被停用，请联系企业管理员或销大师客服人员。'
+            clearInterval(this.corpStatusTimer)
+            this.$refs.cropTips.showModal()
+            break
+          case 3:
+            this.header = '未加入提示'
+            this.content = '抱歉，该员工未加入，您暂时无法操作，请联系销大师客服人员。'
+            clearInterval(this.corpStatusTimer)
+            this.$refs.cropTips.showModal()
+            break
+          case 5:
+            this.header = '已离开提示'
+            this.content = '抱歉，该员工已离开，您暂时无法操作，请联系销大师客服人员。'
+            clearInterval(this.corpStatusTimer)
+            this.$refs.cropTips.showModal()
+            break      
+          default:
+            break
+        }
+      }).catch(() => {
+        this.header = '网络异常'
+        this.content = '抱歉，网络出现故障，暂不能操作'
+        clearInterval(this.corpStatusTimer)
+        this.$refs.cropTips.showModal()
       })
     },
     // 获取公司统计信息
     getCorpStatisticsInfo() {
       let obj = {
-        corpId: this.currentCorp.applyId
+        corpId: getCookie('currentCorp').applyId
       }
-      getCorpStatisticsInfo(obj).then(data => {
-        let corpInfoData = data.data || {}
-        if (data.code === 1) {
-          corpInfoData.loadingDataStatu = 2
-          this.setCorpInfo(Object.assign({}, this.corpInfoData, corpInfoData))
-        } else {
-          corpInfoData.loadingDataStatu = 3
-          this.setCorpInfo(Object.assign({}, this.corpInfoData, corpInfoData))
-        }
-      }).catch(() => {
-        this.setCorpInfo({loadingDataStatu: 3})
-      })
+      getCorpStatisticsInfo(obj)
+        .then(data => {
+          let corpInfoData = data.data || {}
+          if (data.code === 1) {
+            corpInfoData.loadingDataStatu = 2
+            this.setCorpInfo(Object.assign({}, this.corpInfoData, corpInfoData))
+          } else {
+            corpInfoData.loadingDataStatu = 3
+            this.setCorpInfo(Object.assign({}, this.corpInfoData, corpInfoData))
+          }
+        })
+        .catch(() => {
+          this.setCorpInfo({ loadingDataStatu: 3 })
+        })
     },
     queryCorpPackageById(id) {
       let obj = {
@@ -190,26 +258,58 @@ export default {
         }
       })
     },
-    // 进入公司信息
-    saveloginCompany() {
+    upgrade() {
+      let corpId = getCookie('currentCorp').applyId
+      let corpName = getCookie('currentCorp').corpName
       let obj = {
-        corpId: this.currentCorp.applyId
+        corpId: corpId,
+        corpName: corpName
+      }
+      this.setPayStatu(obj)
+    },
+    isAdmin(createId) {
+      return this.getToken().userId === createId
+    },
+    // 进入公司信息
+    saveloginCompany(name) {
+      let obj = {
+        corpId: getCookie('currentCorp').applyId
       }
       saveloginCompany(obj).then(data => {
         if (data.code === 1) {
-          this.$root.Bus.$emit('changeCurrentCorp', this.currentCorp)
+          clearInterval(this.corpStatusTimer)
+          this.currentCorp = getCookie('currentCorp')
+          this.sameName = getCookie('currentCorp').corpName
           let id = data.data.packId
-          this.setLoginCompany(data.data)
+          data.data.admin = this.isAdmin(data.data.createId)
+          this.setSaveloginCompany(data.data)
+          // this.setLoginCompany(data.data)
+          this.getUserCorpAuthMulti()
           this.queryCorpPackageById(id)
           this.getCorpStatisticsInfo()
           this.getPublicAccountList()
           this.getKeyIndicators(0)
           this.queryCorpPackRoleList()
-        } else if (data.code === 3520) {
-          this.$Message.warning('该公司不可用')
-          this.$router.push({name: 'company'})
+          this.queryCompanyStats()
+          // 进入公司并跳到指定页面
+          if (name) {
+            this.$router.push({name: name})
+          }
+          this.corpStatusTimer = setInterval(() => {
+            this.queryCompanyStats()
+            this.queryCorpPackageById(id)
+            this.getCorpStatisticsInfo()
+            this.queryCorpPackRoleList()
+          }, minuTimer)
+        } else {
+          this.header = '不可用提示'
+          this.content = data.message || '很抱歉，网络链接出现故障，请刷新页面！'
+          this.$refs.cropTips.showModal()
         }
       })
+    },
+    goToCrop() {
+      this.$router.push({ name: 'company' })
     },
     // 获得关键指标
     getKeyIndicators(date) {
@@ -217,19 +317,25 @@ export default {
         time: date,
         appAccountId: this.userInfo.defaultWechatAccountid
       }
-      this.setKeyIndicators({loadingDataStatu: 1})
-      getKeyIndicators(obj).then(data => {
-        let keyIndicatorsData = data.data || {}
-        if (data.code === 1) {
-          keyIndicatorsData.loadingDataStatu = 2
-          this.setKeyIndicators(Object.assign({}, this.keyIndicatorsData, keyIndicatorsData))
-        } else {
-          keyIndicatorsData.loadingDataStatu = 3
-          this.setKeyIndicators(Object.assign({}, this.keyIndicatorsData, keyIndicatorsData))
-        }
-      }).catch(() => {
-        this.setKeyIndicators({loadingDataStatu: 3})
-      })
+      this.setKeyIndicators({ loadingDataStatu: 1 })
+      getKeyIndicators(obj)
+        .then(data => {
+          let keyIndicatorsData = data.data || {}
+          if (data.code === 1) {
+            keyIndicatorsData.loadingDataStatu = 2
+            this.setKeyIndicators(
+              Object.assign({}, this.keyIndicatorsData, keyIndicatorsData)
+            )
+          } else {
+            keyIndicatorsData.loadingDataStatu = 3
+            this.setKeyIndicators(
+              Object.assign({}, this.keyIndicatorsData, keyIndicatorsData)
+            )
+          }
+        })
+        .catch(() => {
+          this.setKeyIndicators({ loadingDataStatu: 3 })
+        })
     },
     getUserCorpAuthMulti() {
       // let params = {
@@ -245,7 +351,10 @@ export default {
       })
     },
     getPublicAccountList() {
-      getPublicAccountList().then(data => {
+      let params = {
+        corpId: getCookie('currentCorp').applyId
+      }
+      getPublicAccountList(params).then(data => {
         if (data.code === 1) {
           let tencentData = data.data
           if (tencentData.length > 0) {
@@ -255,7 +364,10 @@ export default {
               for (let i = 0; i < accountList.length; i++) {
                 for (let j = 0; j < tencentData.length; j++) {
                   if (accountList[i].appId === tencentData[j].appId) {
-                    if (accountList[i].lockInStatus === 0 && tencentData[j].lockInStatus === 1) {
+                    if (
+                      accountList[i].lockInStatus === 0 &&
+                      tencentData[j].lockInStatus === 1
+                    ) {
                       this.$Message.success(
                         `${tencentData[j].principalName}公众号同步完成`
                       )
@@ -273,8 +385,8 @@ export default {
                 this.timer = null
               }
             }
-            setCookie('accountList', tencentData)
           }
+          setCookie('accountList', tencentData || [])
         }
       })
     },
@@ -294,15 +406,20 @@ export default {
       }
     },
     selectCompany(name) {
+      clearInterval(this.timer)
       if (this.sameName === this.corpData[name].corpName) {
         return
       }
-      this.currentCorp = this.corpData[name]
-      this.saveloginCompany()
-      this.$router.push({name: 'survey'})
       this.sameName = name
-      setCookie('currentCorp', this.corpData[name], 0.5)
       removeCookie('accountList')
+      let currentCorp = {
+        applyId: this.corpData[name].applyId,
+        corpName: this.corpData[name].corpName
+      }
+      this.currentCorp = currentCorp
+      this.$root.Bus.$emit('changeCurrentCorp', this.currentCorp)
+      setCookie('currentCorp', currentCorp)
+      this.saveloginCompany('survey')
     },
     isLogin() {
       if (this.userInfo) {
@@ -319,8 +436,18 @@ export default {
       logout().then(data => {
         if (data.code === 1) {
           removeToken()
+          removeCookieSession()
           removeCookie('accountList')
           removeCookie('currentCorp')
+          removeCookie('preAuthCode')
+          removeCookie('saveStepsData')
+          removeCookie('companyParams')
+          removeCookie('orderId')
+          removeCookie('seatsInfo')
+          removeCookie('corpId')
+          removeCookie('orderPayPrice')
+          removeCookie('corpName')
+          removeCookie('nextOrderStep')
           this.$router.push({ name: 'login' })
         }
       })
@@ -329,9 +456,10 @@ export default {
       setCollapsed: 'nav/setCollapsed',
       setCorpPackage: 'survey/setCorpPackage',
       setCorpInfo: 'survey/setCorpInfo',
-      setLoginCompany: 'survey/setLoginCompany',
       setKeyIndicators: 'survey/setKeyIndicators',
-      setCorpPackRoleList: 'seats/setCorpPackRoleList'
+      setCorpPackRoleList: 'seats/setCorpPackRoleList',
+      setSaveloginCompany: 'survey/setSaveloginCompany',
+      setPayStatu: 'pay/setPayStatu'
     })
   },
   watch: {
@@ -340,6 +468,7 @@ export default {
     }
   },
   destroyed() {
+    clearInterval(this.corpStatusTimer)
     clearInterval(this.timer)
     this.$root.Bus.$off('accountDataToDb')
     this.$root.Bus.$off('regainCompanyInfo')
@@ -357,6 +486,7 @@ export default {
   box-shadow 0px 1px 0px 0px #e3e4e5
   background-color #fff
   transition all 0.2s
+  min-width 700px 
   &.bigHeader
     padding-left 120px
   &.smallHeader
@@ -373,7 +503,6 @@ export default {
       margin-top 18px
     .company
       line-height 50px
-      width 207px
       .user
         clear()
         .user-name

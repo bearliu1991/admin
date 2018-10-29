@@ -43,6 +43,7 @@ const actions = {
     commit('SET_FIRSTSTEPDATA', thirdStepData)
   },
   setCorpPackRoleList({commit}, corpPackRoleList) {
+    corpPackRoleList = JSON.parse(JSON.stringify(corpPackRoleList))
     commit('SET_CORPPACKROLE', corpPackRoleList)
   }
 }

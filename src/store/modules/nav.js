@@ -1,10 +1,12 @@
 const state = {
   collapsed: true,
-  routerInfo: {}
+  routerInfo: {},
+  secondMenu: []
 }
 const getters = {
   getCollapsed: state => state.collapsed,
-  getRouterInfo: state => state.routerInfo
+  getRouterInfo: state => state.routerInfo,
+  getSecondMenu: state => state.secondMenu
 }
 const mutations = {
   SET_COLLAPSED(state, collapsed) {
@@ -12,6 +14,9 @@ const mutations = {
   },
   SET_ROUTERINFO(state, routerInfo) {
     state.routerInfo = routerInfo
+  },
+  SET_SECONDMENU(state, secondMenu) {
+    state.secondMenu = secondMenu
   }
 }
 const actions = {
@@ -21,6 +26,9 @@ const actions = {
   },
   setRouterInfo({commit}, routerInfo) {
     commit('SET_ROUTERINFO', routerInfo)
+  },
+  setSecondMenu({commit}, secondMenu) {
+    commit('SET_SECONDMENU', secondMenu)
   }
 }
 

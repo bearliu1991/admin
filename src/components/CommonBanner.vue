@@ -3,23 +3,26 @@
     <carousel :slides="slides" :inv="invTime"></carousel>
   </div>
 </template>
-
 <script>
+import carousel from '@/components/Carousel'
 export default {
   data() {
     return {
       invTime: 4000,
       slides: [
         {
-          src: require('@/assets/images/1.jpg'),
+          src: require('@/assets/images/home/banner2.jpg'),
           title: 'xxx1'
         },
         {
-          src: require('@/assets/images/2.jpg'),
+          src: require('@/assets/images/home/banner1.jpg'),
           title: 'xxx2'
         }
       ]
     }
+  },
+  components: {
+    carousel
   }
 }
 </script>

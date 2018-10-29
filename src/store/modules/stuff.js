@@ -9,7 +9,10 @@ const state = {
   trees: [], // 树结构
   isPopTree: false, // 是否处于弹窗选择状态
   popCurApart: null, // 弹窗选择的部门
-  curUser: null // 正在操作的员工
+  curUser: null, // 正在操作的员工
+  isTop: 1, // 是否将置顶内容放在最上方
+  apartCount: 1, // 部门数
+  filterData: null // 保存筛选数据
 }
 const getters = {
   getCorpkey: state => state.corpkey,
@@ -22,9 +25,21 @@ const getters = {
   getTrees: state => state.trees,
   getIsPopTree: state => state.isPopTree,
   getPopApart: state => state.popCurApart,
-  getCurUser: state => state.curUser
+  getCurUser: state => state.curUser,
+  getIsTop: state => state.isTop,
+  getApartCount: state => state.apartCount,
+  getFilterData: state => state.filterData
 }
 const mutations = {
+  SET_Filter_DATA(state, val) {
+    state.filterData = val
+  },
+  SET_APART_COUNT(state, val) {
+    state.apartCount = val
+  },
+  SET_TOP(state, val) {
+    state.isTop = val
+  },
   SET_CUR_USER(state, val) {
     state.curUser = val
   },
@@ -56,6 +71,7 @@ const mutations = {
     state.addUserRights = val
   },
   SET_CUR_APART(state, val) {
+    // console.error(val)
     state.currApart = val
   }
 }

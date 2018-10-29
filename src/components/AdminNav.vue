@@ -3,20 +3,17 @@
     <div class="nav-unfold" v-show="collapsed">
       <div class="nav-icon">
         <div class="nav-icon-img">
-          <img src="@/assets/images/navbig/logo.png" alt="">
+          <img src="http://xingke100.com/logo.png" alt="">
         </div>
         <div class="nav-icon-text">
-          迎客通
+          销大师
         </div>
       </div>
       <div class="nav-main">
         <ul>
-          <li v-for="(item, index) in unfoldData" :key="index" :class="{active:routerInfo.path.indexOf(item.urlName)>=0}" class="nav-item" @click="goToRouter(item.urlName)" @mouseover="mouseActive(index)" @mouseout="mouseUnActive(index)">
-            <div class="img" v-show="mouseStatus !== index && routerInfo.path.indexOf(item.urlName)<0">
-              <img :src="item.navImg" alt="">
-            </div>
-            <div class="img" v-show="mouseStatus == index || routerInfo.path.indexOf(item.urlName)>=0">
-              <img :src="item.activeImg" alt="">
+          <li v-for="(item, index) in unfoldData" :key="index" :class="{active:routerInfo.path.indexOf(item.urlName)>=0}" class="nav-item" @click="goToRouter(item.urlName, item.isSecond)" @mouseover="mouseActive(index)" @mouseout="mouseUnActive(index)">
+            <div class="img-iconfont">
+              <i class="iconfont" :class="item.fontClass"></i>
             </div>
             <div class="text">
               {{item.text}}
@@ -36,8 +33,8 @@
     <div class="nav-packup" v-show="!collapsed">
       <div class="nav-icon">
         <div class="nav-icon-img">
-          <img src="@/assets/images/navbig/logo.png" alt="">
-          <Tooltip content="迎客通" placement="right" :transfer="true">
+          <img src="http://xingke100.com/logo.png" alt="">
+          <Tooltip content="销大师" placement="right" :transfer="true">
             <div class="text-tootip"></div>
           </Tooltip>
         </div>
@@ -48,11 +45,8 @@
             <Tooltip :content="item.text" placement="right" :transfer="true">
               <div class="text-tootip"></div>
             </Tooltip>
-            <div class="img" v-show="mouseStatus !== index && routerInfo.path.indexOf(item.urlName)<0">
-              <img :src="item.navImg" alt="">
-            </div>
-            <div class="img" v-show="mouseStatus == index || routerInfo.path.indexOf(item.urlName)>=0">
-              <img :src="item.activeImg" alt="">
+            <div class="img-iconfont">
+              <i class="iconfont" :class="item.fontClass"></i>
             </div>
           </li>
         </ul>
@@ -70,6 +64,7 @@
 </template>
 <script>
 import { mapGetters, mapActions } from 'vuex'
+// import { setCookie } from '@/utils/cookies'
 export default {
   name: 'adminNav',
   data() {
@@ -78,12 +73,14 @@ export default {
         {
           navImg: require('@/assets/images/navbig/1.png'),
           activeImg: require('@/assets/images/navbig/1active.png'),
+          fontClass: "icon-gaikuang",
           text: '概况',
           urlName: 'survey'
         },
         {
           navImg: require('@/assets/images/navbig/2.png'),
           activeImg: require('@/assets/images/navbig/2active.png'),
+          fontClass: "icon-weixin",
           text: '公众号',
           urlName: 'tencent',
           isSecond: true
@@ -91,39 +88,47 @@ export default {
         {
           navImg: require('@/assets/images/navbig/3.png'),
           activeImg: require('@/assets/images/navbig/3active.png'),
+          fontClass: "icon-yuangong",
           text: '员工',
           urlName: 'stuff'
         },
         {
           navImg: require('@/assets/images/navbig/4.png'),
           activeImg: require('@/assets/images/navbig/4active.png'),
+          fontClass: "icon-zuoxi",
           text: '坐席',
           urlName: 'seats'
         },
         {
           navImg: require('@/assets/images/navbig/5.png'),
           activeImg: require('@/assets/images/navbig/5active.png'),
+          fontClass: "icon-yingxiao",
           text: '营销'
         },
         {
           navImg: require('@/assets/images/navbig/6.png'),
           activeImg: require('@/assets/images/navbig/6active.png'),
+          fontClass: "icon-qunfa",
           text: '群发'
         },
         {
           navImg: require('@/assets/images/navbig/7.png'),
           activeImg: require('@/assets/images/navbig/7active.png'),
+          fontClass: "icon-fensi",
           text: '粉丝'
         },
         {
           navImg: require('@/assets/images/navbig/8.png'),
           activeImg: require('@/assets/images/navbig/8active.png'),
+          fontClass: "icon-tongji",
           text: '统计'
         },
         {
           navImg: require('@/assets/images/navbig/9.png'),
           activeImg: require('@/assets/images/navbig/9active.png'),
-          text: '设置'
+          fontClass: "icon-shezhi",
+          text: '设置',
+          urlName: 'setting'
         }
       ],
       mouseStatus: -1
@@ -135,21 +140,42 @@ export default {
       routerInfo: 'nav/getRouterInfo'
     })
   },
-  mounted() {
-  },
+  mounted() {},
   methods: {
     mouseActive(index) {
       this.mouseStatus = index
     },
-    goToRouter(name) {
-      this.$router.push({
-        name: name
-      })
+    goToRouter(name, isSecond) {
+      if (isSecond) {
+        if (this.routerInfo.name.indexOf(name) < 0) {
+          // for (let k in this.secondMenu) {
+          //   if (k === name) {
+          //     setCookie('secondMenu', this.secondMenu[k])
+          //     this.$root.Bus.$emit('selectSecondMenu')
+          //     break
+          //   }
+          // }
+          this.$router.push({
+            name: name
+          })
+        }
+      } else {
+        this.$router.push({
+          name: name
+        })
+      }
     },
     goToRouterPackup(name, isSecond) {
       if (isSecond) {
         this.setCollapsed(true)
-        if (this.routerInfo.path.indexOf(name) < 0) {
+        if (this.routerInfo.name.indexOf(name) < 0) {
+          // for (let k in this.secondMenu) {
+          //   if (k === name) {
+          //     setCookie('secondMenu', this.secondMenu[k])
+          //     this.$root.Bus.$emit('selectSecondMenu')
+          //     break
+          //   }
+          // }
           this.$router.push({
             name: name
           })
@@ -199,11 +225,13 @@ export default {
       .nav-icon-img
         cursor pointer
         position relative
-        height 41px
+        height 52px
         img
+          transition all 0.5s 
           position absolute
           left 33px
           width 54px
+          height 54px
       .nav-icon-text
         display inline-block
         width 48px
@@ -218,21 +246,17 @@ export default {
         height 50px
         line-height 50px
         cursor pointer
-        &:hover
+        &:hover, &.active
           background-color #35404c
-          .text
+          .img-iconfont .iconfont, .text
             color #fff
-        &.active
-          background-color #35404c
-          .text
-            color #fff  
-        .img
-          left 35px
+        .img-iconfont
           position absolute
-          img
-            width 18px
-            display inline-block
-            vertical-align middle
+          top 0px
+          left 30px
+          .iconfont 
+            font-size: 18px
+            color #a8adb2    
         .text
           width 42px
           left 58px
@@ -263,14 +287,18 @@ export default {
         img
           left 13px
           width 33px
+          height 33px
+          transition all 0.5s 
     .nav-main
       margin-top 57px
       .nav-item
-        .img
-          left 19px
-          text-align center
-          img
-            width 21px
+        .img-iconfont
+          position absolute
+          top 0px
+          left 18px
+          .iconfont 
+            font-size: 18px
+            color #a8adb2   
     .nav-service
       .left
         left 19px

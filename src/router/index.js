@@ -4,152 +4,202 @@ import Router from 'vue-router'
 Vue.use(Router)
 
 export default new Router({
-  mode: 'history',
+  mode: "history",
   routes: [
     {
-      path: '/',
-      redirect: '/main/home'
+      path: "/",
+      redirect: "/main/home"
     },
     {
-      path: '/authorization',
-      name: 'authorization',
+      path: "/authorization",
+      name: "authorization",
       meta: {
         requireAuth: true
       },
-      component: () => import('@/views/authorization/authorization')
+      component: () => import("@/pages/authorization/authorization")
     },
     {
-      path: '/admin',
-      redirect: '/admin/survey'
+      path: "/admin",
+      redirect: "/admin/survey"
     },
     {
-      path: '/login',
-      name: 'login',
-      component: () => import('@/views/login/login')
+      path: "/login",
+      name: "login",
+      component: () => import("@/pages/login/login")
     },
     {
-      path: '/register/:step',
-      name: 'register',
-      component: () => import('@/views/register/register')
+      path: "/register",
+      name: "register",
+      component: () => import("@/pages/register/register")
     },
     {
-      path: '/main',
-      name: 'main',
-      component: () => import('@/views/main/main'),
+      path: "/main",
+      name: "main",
+      component: () => import("@/pages/main/main"),
       children: [
         {
-          path: '/main/home',
-          name: 'home',
-          component: () => import('@/views/home/home')
+          path: "/main/home",
+          name: "home",
+          component: () => import("@/pages/home/home")
         },
         // 个人中心
         {
-          path: '/main/personInfo',
-          name: 'personInfo',
+          path: "/main/personInfo",
+          name: "personInfo",
           meta: {
             requireAuth: true
           },
-          component: () => import('@/views/personalCenter/personInfo')
+          component: () => import("@/pages/personalCenter/personInfo")
         },
         // 注册协议
         {
-          path: '/main/agreement',
-          name: 'agreement',
-          meta: {
-            requireAuth: true
-          },
-          component: () => import('@/views/agreement/agreement')
+          path: "/main/agreement",
+          name: "agreement",
+          component: () => import("@/pages/agreement/agreement")
         },
         // 我的企业
         {
-          path: '/main/company',
-          name: 'company',
+          path: "/main/company",
+          name: "company",
           meta: {
             requireAuth: true
           },
-          component: () => import('@/views/personalCenter/company')
+          component: () => import("@/pages/personalCenter/company")
         },
         // 创建新企业
         {
-          path: '/main/createCompany',
-          name: 'createCompany',
+          path: "/main/createCompany",
+          name: "createCompany",
           meta: {
             requireAuth: true
           },
-          component: () => import('@/views/personalCenter/createCompany')
+          component: () => import("@/pages/personalCenter/createCompany")
         },
         // 修改手机号
         {
-          path: '/main/editPhone/:oldMobile/:applyId',
-          name: 'editPhone',
+          path: "/main/editPhone/:oldMobile/:applyId",
+          name: "editPhone",
           meta: {
             requireAuth: true
           },
-          component: () => import('@/views/personalCenter/editPhone')
+          component: () => import("@/pages/personalCenter/editPhone")
         },
         // 修改手机号
         {
-          path: '/main/webLink',
-          name: 'webLink',
-          component: () => import('@/views/webLink')
+          path: "/main/webLink",
+          name: "webLink",
+          component: () => import("@/pages/webLink")
         }
       ]
     },
     {
-      path: '/admin',
-      name: 'admin',
+      path: "/admin",
+      name: "admin",
       meta: {
         requireAuth: true
       },
-      component: () => import('@/views/admin/admin-main/admin-main'),
+      component: () => import("@/pages/admin/admin-main/admin-main"),
       children: [
         {
-          path: '/admin/survey',
-          name: 'survey',
+          path: "/admin/survey",
+          name: "survey",
           meta: {
             requireAuth: true
           },
-          component: () => import('@/views/admin/survey/survey')
+          component: () => import("@/pages/admin/survey/survey")
         },
         // 坐席
         {
-          path: '/admin/seats',
-          name: 'seats',
+          path: "/admin/seats",
+          name: "seats",
           meta: {
             requireAuth: true
           },
-          component: () => import('@/views/admin/seats/seats')
+          component: () => import("@/pages/admin/seats/seats")
         },
         // 公众号
         {
-          path: '/admin/tencent',
-          name: 'tencent',
-          redirect: '/admin/tencent/tencentManage',
+          path: "/admin/tencent",
+          name: "tencent",
+          redirect: "/admin/tencent/tencentManage",
           meta: {
             requireAuth: true
           },
-          component: () => import('@/views/admin/tencent/tencent'),
+          component: () => import("@/pages/admin/secondMenu/secondMenu"),
           children: [
             {
-              path: '/admin/tencent/tencentManage',
-              name: 'tencentManage',
+              path: "/admin/tencent/tencentManage",
+              name: "tencentManage",
               meta: {
                 requireAuth: true
               },
               component: () =>
-                import('@/views/admin/tencentManage/tencentManage')
+                import("@/pages/admin/tencentManage/tencentManage")
+            }
+          ]
+        },
+        // setting
+        {
+          path: "/admin/setting",
+          name: "setting",
+          redirect: "/admin/setting/seatSetting",
+          meta: {
+            requireAuth: true
+          },
+          component: () => import("@/pages/admin/secondMenu/secondMenu"),
+          children: [
+            {
+              path: "/admin/setting/seatSetting",
+              name: "seatSetting",
+              meta: {
+                requireAuth: true
+              },
+              component: () =>
+                import("@/pages/admin/setting/seatSetting/seatSetting")
+            },
+            {
+              path: "/admin/setting/records",
+              name: "records",
+              meta: {
+                requireAuth: true
+              },
+              component: () => import("@/pages/admin/orderRecords/records")
+            },
+            {
+              path: "/admin/setting/corpInfo",
+              name: "corpInfo",
+              meta: {
+                requireAuth: true
+              },
+              component: () => import("@/pages/admin/setting/corpInfo/corpInfo")
             }
           ]
         },
         {
-          path: '/admin/stuff',
-          name: 'stuff',
+          path: "/admin/stuff",
+          name: "stuff",
           meta: {
             requireAuth: true
           },
-          component: () => import('@/views/admin/stuff/stuff')
+          component: () => import("@/pages/admin/stuff/stuff")
         }
       ]
+    },
+    {
+      path: "/pay",
+      name: "pay",
+      meta: {
+        requireAuth: true
+      },
+      component: () => import('@/pages/admin/pay/pay')
+    },
+    {
+      path: '/payMain',
+      name: 'payMain',
+      meta: {
+        requireAuth: true
+      },
+      component: () => import('@/pages/admin/pay/payMain')
     }
   ]
 })

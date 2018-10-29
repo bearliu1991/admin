@@ -30,8 +30,8 @@
             </Button>
         </div>
       </div>
-      
     </div>
+    <NewModal v-model="forbidden" :closable="false" :maskClosable="false" header="禁用提示" :content="content" confrim="知道了" :cancelBtn="false"></NewModal>
   </div>
 </template>
 
@@ -40,10 +40,10 @@ import {
   getTmpQrcode,
   getSession,
   getPersonalInfo,
-  getDefaultInfo,
-  getUserCorpAuthMulti
+  getDefaultInfo
 } from '@/api/query'
-import { setToken, setCookie } from '@/assets/js/cookies'
+import { setToken, setCookie } from '@/utils/cookies'
+import {mapActions} from 'vuex'
 export default {
   props: {
     styles: {
@@ -61,39 +61,27 @@ export default {
     },
     tips: {
       type: String,
-      default: '登录成功 正在跳转'
+      default: '登录成功 正在跳转...'
     }
   },
   data() {
     return {
+      content: '很抱歉，您的微信账号已被禁用，请换一个微信试一试吧。如需帮助，请联系销大师，咨询电话：400-8556 888。',
       loginData: [],
       appAccountId: '',
       loadingImg: true,
       timer: null,
       status: 1,
       refreshBtn: false,
-      tokenData: {}
+      tokenData: {},
+      timeoutTimer: null,
+      forbidden: false
     }
   },
   created() {
     this.getDefaultInfo()
-    this.getTmpQrcode()
   },
   methods: {
-    getUserCorpAuthMulti() {
-      // let params = {
-      //   offset: this.offset,
-      //   limit: 10,
-      //   // ASC
-      //   order: 'ASC'
-      // }
-      getUserCorpAuthMulti().then(data => {
-        if (data.code === 1) {
-          setCookie('currentCorp', data.data[0], 0.5)
-          this.$router.push({ name: 'survey' })
-        }
-      })
-    },
     refresh() {
       this.refreshBtn = true
       this.getTmpQrcode()
@@ -102,6 +90,7 @@ export default {
       getDefaultInfo().then(data => {
         this.appAccountId = data.data.defaultWechatAccountid
         this.tokenData = Object.assign({}, this.tokenData, data.data)
+        this.getTmpQrcode()
       })
     },
     getTmpQrcode() {
@@ -122,14 +111,16 @@ export default {
             this.loadingImg = false
             this.loginData = data.data
             this.getSession()
-            this.timer = setInterval(() => {
-              this.getSession()
-            }, 5000)
-            setTimeout(() => {
+            if (!this.timer) {
+              this.timer = setInterval(() => {
+                this.getSession()
+              }, 5000)
+            }
+            this.timeoutTimer = setTimeout(() => {
               this.status = 3
               clearInterval(this.timer)
               this.timer = null
-            }, 180 * 1000)
+            }, data.data.expireSeconds * 1000)
           }
         })
         .catch(() => {
@@ -140,24 +131,28 @@ export default {
       getPersonalInfo().then(data => {
         if (data.code === 1) {
           this.status = 2
-          this.tokenData.corpList = data.data.corpList.length
+          this.tokenData.corpList = data.data.corpList
           setToken(this.tokenData, 0.5)
           if (data.data.corpList.length === 0) {
+            this.setStep(2)
             setTimeout(() => {
               if (this.qrcodeType === 'Register') {
-                this.$emit('steps', 2)
               } else {
                 this.$Message.warning('您还没有绑定企业，请先绑定企业')
-                this.$router.push({
-                  name: 'register',
-                  params: {
-                    step: 2
-                  }
-                })
+                this.$router.push({name: 'register'})
               }
             }, 1500)
           } else if (data.data.corpList.length === 1) {
-            this.getUserCorpAuthMulti()
+            if (data.data.corpList[0].status !== 'ACTIVE') {
+              this.$router.push({ name: 'company' })
+            } else {
+              let currentCorp = {
+                applyId: data.data.corpList[0].corpId,
+                corpName: data.data.corpList[0].companyName
+              }
+              setCookie('currentCorp', currentCorp)
+              this.$router.push({ name: 'survey' })
+            }
           } else {
             setTimeout(() => {
               this.$router.push({ name: 'company' })
@@ -169,41 +164,52 @@ export default {
     getSession() {
       getSession()
         .then(data => {
-          if (data.code === 1) {
-            clearInterval(this.timer)
-            this.timer = null
-            this.status = 2
-            this.tokenData = Object.assign({}, this.tokenData, data.data)
-            this.tokenData.corpList = 0
-            setToken(this.tokenData, 0.5)
-            if (data.data.mobileStatus !== 'BIND') {
-              if (this.qrcodeType === 'Register') {
-                this.$emit('steps', 1)
+          switch (data.code) {
+            case 1:
+              clearInterval(this.timer)
+              this.timer = null
+              this.status = 2
+              this.tokenData = Object.assign({}, this.tokenData, data.data)
+              this.tokenData.corpList = []
+              setToken(this.tokenData, 0.5)
+              if (data.data.mobileStatus !== 'BIND') {
+                this.setStep(1)
+                if (this.qrcodeType === 'Register') {
+                } else {
+                  setTimeout(() => {
+                    this.$Message.warning('您还没有绑定手机，请先绑定手机')
+                    this.$router.push({name: 'register'})
+                  }, 1500)
+                }
               } else {
-                setTimeout(() => {
-                  this.$Message.warning('您还没有绑定手机，请先绑定手机')
-                  this.$router.push({
-                    name: 'register',
-                    params: {
-                      step: 1
-                    }
-                  })
-                }, 1500)
+                this.getPersonalInfo()
               }
-            } else {
-              this.getPersonalInfo()
-            }
-          } else if (data.code === 200) {
+              break
+            case 0:
+              this.$Message.warning(data.message)
+              break
+            // case 2524:
+            //   this.forbidden = true
+            //   clearInterval(this.timer)
+            //   this.timer = null
+            //   break  
+            default:
+              break
           }
         })
         .catch(() => {
           clearInterval(this.timer)
           this.timer = null
         })
-    }
+    },
+    ...mapActions({
+      setStep: 'user/setStep'
+    })
   },
   destroyed() {
     clearInterval(this.timer)
+    clearTimeout(this.timeoutTimer)
+    this.timeoutTimer = null
     this.timer = null
   }
 }
@@ -246,5 +252,6 @@ export default {
     .tips
       .wechat
         width 24px
+        height 24px
 </style>
 

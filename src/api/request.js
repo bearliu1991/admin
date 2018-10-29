@@ -1,9 +1,17 @@
 import Path from './path'
+import orderPath from './flyPath'
 import Vue from 'vue'
 import Api from './index'
 
 export default function () {
   Vue.prototype.Path = Path
+  Vue.prototype.fylPath = orderPath
+  Vue.prototype.$get = function(url, args) {
+    return Api.$get(url, args)
+  }
+  Vue.prototype.$post = function(url, args) {
+    return Api.$post(url, args)
+  }
   // 获取树结构
   Vue.prototype.getTree = function () {
     return Api.get(Path.getTree)
@@ -102,5 +110,37 @@ export default function () {
   // 解绑员工
   Vue.prototype.unbindUser = function (args) {
     return Api.get(Path.unbindUser, args)
+  }
+
+  /*
+    订单相关
+  */
+  // 获取转化时间格式的时间列表
+  Vue.prototype.ajaxDateList = function (args) {
+    return Api.get(Path.dateList, args)
+  }
+  // 获取套餐列表
+  Vue.prototype.ajaxMenuList = function (args) {
+    return Api.get(Path.menuList, args)
+  }
+  // 获取订单列表
+  Vue.prototype.ajaxRecordsList = function (args) {
+    return Api.get(Path.recordsList, args)
+  }
+  // 获取订单状态列表
+  Vue.prototype.ajaxOrderStatus = function (args) {
+    return Api.get(Path.orderStatus, args)
+  }
+  // 获取订单详情
+  Vue.prototype.ajaxOrderDetail = function (args) {
+    return Api.get(Path.orderDetail, args)
+  }
+  // 获取正在使用的套餐
+  Vue.prototype.ajaxUsingMenu = function (args) {
+    return Api.get(Path.usingMenu, args)
+  }
+  // 取消订单
+  Vue.prototype.ajaxUsingMenu = function (args) {
+    return Api.get(Path.usingMenu, args)
   }
 }

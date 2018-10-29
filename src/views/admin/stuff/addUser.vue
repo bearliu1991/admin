@@ -11,7 +11,10 @@
         <data-loading :dataSatau="dataSatau">
             <AddInput v-show="curId === 0" ref="addInput"></AddInput>
             <RightSet :systems="systems" :isEdit="true" v-show="curId === 1" ref="rightSet"></RightSet>
-            <WeCode v-show="curId === 2" ref="weCode" :datas="weCodeData" :curApart="curApart">
+            <WeCode v-show="curId === 2" ref="weCode" 
+            :uploadurl="uploadurl"
+            :downloadurl="downloadurl"
+            :datas="weCodeData" :curApart="curApart">
                 <p>账号创建成功!</p>
                 <p>将二维码截图或保存后发送给员工,员工可用微信扫码加入企业</p>
             </WeCode>
@@ -42,7 +45,9 @@ export default {
       eeId: null,
       inviteCode: null,
       inputVals: null,
-      weCodeData: {}
+      weCodeData: {},
+      uploadurl: this.uploadfile,
+      downloadurl: this.downloadfile
     }
   },
   created() {

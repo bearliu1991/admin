@@ -59,7 +59,7 @@ export default {
       setTimeout(() => {
         this.isShow = true
         this.nowIndex = index
-      }, 10)
+      }, 1)
     },
     run() {
       this.invId = setInterval(() => {
@@ -79,11 +79,11 @@ export default {
 <style lang="stylus">
 @import '~@/assets/stylus/mixin'
 .slide-trans-enter-active
-  transition all 0.8s
+  transition all 1s
 .slide-trans-enter
   opacity 0
 .slide-trans-old-leave-active
-  transition all 0.8s
+  transition all 1s
   opacity 0
 .slide-show
   position relative
