@@ -9,4 +9,7 @@ export default function () {
   Vue.prototype.getCancelOrder = function (args) {
     return Api.get(Path.cancelOrder, args)
   }
+  Vue.prototype.queryTItemValueByPager = function (args) {
+    return Api.get(Path.queryTItemValueByPager, args)
+  }
 }

@@ -29,10 +29,9 @@
 <script>
 import {
   saveCorpCreateApply,
-  getDefaultInfo,
-  getPersonalInfo
+  getPersonalInfo,
+  saveloginCompany
 } from '@/api/query'
-import { getToken, setToken, setCookie } from '@/utils/cookies'
 import { uuid } from '@/utils/util'
 import Cascader from '@/components/Cascader'
 export default {
@@ -73,6 +72,10 @@ export default {
           {
             validator: validTrim,
             trigger: 'blur'
+          },
+          {
+            max: 100,
+            message: '企业名称长度不能大于100！'
           }
         ],
         linkman: [
@@ -84,6 +87,10 @@ export default {
           {
             validator: validTrim,
             trigger: 'blur'
+          },
+          {
+            max: 100,
+            message: '联系人姓名长度不能大于100！'
           }
         ],
         area: [
@@ -93,32 +100,49 @@ export default {
           }
         ]
       },
-      token: getToken(),
+      token: this.getToken(),
       cropName: '',
       showCascaderModal: false
     }
   },
   mounted() {
-    this.getDefaultInfo()
+    // this.getDefaultInfo()
   },
   methods: {
+    // 进入公司信息
+    saveloginCompany(param, name) {
+      let obj = {
+        corpId: param
+      }
+      saveloginCompany(obj).then(data => {
+        if (data.code === 1) {
+          if (!data.data.menuTree) {
+            this.$Message.error('非常抱歉，您暂无权限，不能进入管理')
+            return
+          }
+          this.$router.push({ name: name })
+        } else {
+          this.removeCookie('currentCorp')
+        }
+      })
+    },
     getPersonalInfo() {
       getPersonalInfo().then(data => {
         if (data.code === 1) {
           let tokenData = {}
-          tokenData.corpList = data.data.corpList
+          tokenData.corpList = (data.data.corpList && data.data.corpList.length) || 0
           tokenData = Object.assign({}, this.token, tokenData)
-          setToken(tokenData, 0.5)
+          this.setToken(tokenData, 0.5)
           if (data.data.corpList.length === 1) {
-            if (data.data.corpList[0].status !== 'ACTIVE') {
+            if (data.data.corpList[0].corpStatus !== 'ACTIVE') {
               this.$router.push({ name: 'company' })
             } else {
               let currentCorp = {
                 applyId: data.data.corpList[0].corpId,
                 corpName: data.data.corpList[0].companyName
               }
-              setCookie('currentCorp', currentCorp)
-              this.$router.push({ name: 'survey' })
+              this.setCookie('currentCorp', currentCorp)
+              this.saveloginCompany(data.data.corpList[0].corpId, 'survey')
             }
           } else {
             this.$router.push({ name: 'company' })
@@ -132,10 +156,10 @@ export default {
         if (valid) {
           let areaArr = this.formBusiness.area.split('/')
           if (areaArr.length === 1) {
-            this.$Message.warning('您还没有选择市')
+            this.$Message.error('您还没有选择市')
             return
           } else if (areaArr.length === 2) {
-            this.$Message.warning('您还没有选择区')
+            this.$Message.error('您还没有选择区')
             return
           }
           // let params = {
@@ -151,29 +175,14 @@ export default {
           //   area: areaArr[2] || ''
           // }
           let params = {
-            applyId: null,
             userId: this.token.userId,
-            packId: this.packId,
             regNo: uuid(),
             corpName: this.formBusiness.name.trim(),
             contactName: this.formBusiness.linkman.trim(),
-            corpType: '',
-            premises: '',
             telephone: this.token.bindMobile,
-            province: areaArr[0],
+            province: areaArr[0] || '',
             city: areaArr[1] || '',
-            area: areaArr[2] || '',
-            ceo: '',
-            regCapital: '',
-            startDate: '',
-            expires: '',
-            busiType: '',
-            busScope: '',
-            email: '',
-            nation: '',
-            address: '',
-            logo: '',
-            remark: ''
+            area: areaArr[2] || ''
           }
           // this.saveCorpCreateApply(params)
           if (this.type === 'new') {
@@ -188,7 +197,8 @@ export default {
               city: areaArr[1] || '',
               area: areaArr[2] || '',
             }
-            setCookie('companyParams', obj)
+            this.setCookie('corpName', obj.corpName)
+            this.setCookie('companyParams', obj)
             this.$emit('companyParams', obj)
           }
         } else {
@@ -210,8 +220,11 @@ export default {
           case 3515:
             this.cropName = '您已创建了该企业'
             break
+          case 3519:
+            this.$Message.error('创建企业失败，您可能已经创建了待审批的企业，还没有通过审批。请联系销大师客服人员')
+            break  
           default:
-            this.$Message.warning('创建企业失败')
+            this.$Message.error('创建企业失败')
             break
         }
       })
@@ -222,11 +235,11 @@ export default {
     cancel() {
       this.$router.push({ name: 'company' })
     },
-    getDefaultInfo() {
-      getDefaultInfo().then(data => {
-        this.packId = data.data.defaultFreePackage
-      })
-    }
+    // getDefaultInfo() {
+    //   getDefaultInfo().then(data => {
+    //     this.packId = data.data.defaultFreePackage
+    //   })
+    // }
   },
   components: {
     Cascader

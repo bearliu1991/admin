@@ -1,150 +1,152 @@
 <template>
   <div id="corpInfo">
-    <div class="title_public">
-      企业信息
-    </div>
-    <div class="corpInfo-wrapper">
-      <div class="part-wrapper">
-        <div class="part-title">
-          基本信息
-        </div>
-        <div class="basic-wrapper">
-          <div class="corp-info-item corp-logo-item">
-            <div class="left">企业logo</div>
-            <div class="right">
-              <div class="default">
-                <div class="default-left default-logo">
-                  <upload-logo :isUpload="saveloginCompany.admin" v-if="corpData.logo" :imgSrc="corpData.logo"></upload-logo>
-                </div>
-                <div class="default-right default-logo-text">建议尺寸：300X300像素</div>
-              </div>
-            </div>
-          </div>
-          <div class="corp-info-item">
-            <div class="left">企业名称</div>
-            <div class="right">
-              <div class="default" v-show="typeEdit!=='company'">
-                <span class="span">{{corpData.corpName || '- -'}}</span>
-                <span class="span" v-if="saveloginCompany.admin">
-                  <Icon class="edit-icon handle" title="修改" @click="editInfo('company', corpData.corpName)" type="edit"></Icon>
-                </span>
-              </div>
-              <div class="edit" v-show="typeEdit=='company'">
-                <Input v-model="companyInfo" placeholder="请输入企业名称"></Input>
-                <span class="span handle" @click="saveEdit('company')">保存</span>
-                <span class="span handle cancel" @click="cancelEdit">取消</span>
-                <div class="err" v-show="errorType=='company'">{{corpErrorText}}</div>
-              </div>
-            </div>
-          </div>
-          <div class="corp-info-item">
-            <div class="left">所在地址</div>
-            <div class="right">
-              <div class="default">
-                <span class="span">{{corpData.province}}{{corpData.area}}{{corpData.city}}</span>
-                <span class="span" v-if="saveloginCompany.admin">
-                  <Icon class="edit-icon handle" title="修改" @click="editInfo('area')" type="edit"></Icon>
-                </span>
-              </div>
-            </div>
-          </div>
-          <div class="corp-info-item">
-            <div class="left">创建时间</div>
-            <div class="right">
-              <div class="default">
-                <span class="span">{{corpData.createTime}}</span>
-              </div>
-            </div>
-          </div>
-          <div class="corp-info-item">
-            <div class="left">联系人</div>
-            <div class="right">
-              <div class="default" v-show="typeEdit!=='linkman'">
-                <span class="span">{{corpData.contactName}}</span>
-                <span class="span" v-if="saveloginCompany.admin">
-                  <Icon class="edit-icon handle" title="修改" @click="editInfo('linkman', corpData.contactName)" type="edit"></Icon>
-                </span>
-              </div>
-              <div class="edit" v-show="typeEdit=='linkman'">
-                <Input v-model="companyInfo" placeholder="请输入联系人姓名"></Input>
-                <span class="span handle" @click="saveEdit('linkman')">保存</span>
-                <span class="span handle cancel" @click="cancelEdit">取消</span>
-                <div class="err" v-show="errorType=='linkman'">{{linkmanErrorText}}</div>
-              </div>
-            </div>
-          </div>
-          <div class="corp-info-item">
-            <div class="left">手机号</div>
-            <div class="right">
-              <div class="default">
-                <span class="span">{{corpData.phoneNumber}}</span>
-                <span class="span" v-if="saveloginCompany.admin">
-                  <Icon class="edit-icon handle" title="修改" @click="editInfo('phone')" type="edit"></Icon>
-                </span>
-              </div>
-            </div>
-          </div>
-          <div class="corp-info-item corp-info-weixin">
-            <div class="left">
-              <div>管理员微信</div>
-              <div class="tip-text">(创建人)</div>
-            </div>
-            <div class="right">
-              <div class="default">
-                <img class="default-left default-weixin" :src="corpData.picUrl" alt="logo">
-                <div class="default-right default-weixin-text">{{corpData.accountNickName}}</div>
-              </div>
-            </div>
-          </div>
-          <div class="corp-info-item">
-            <div class="left">已绑公众号</div>
-            <div class="right">
-              <div class="default">
-                <span class="span">{{corpData.appidNum}}个</span>
-              </div>
-            </div>
-          </div>
-        </div>
+    <data-loading :data-satau='loadingStatu' @reload="reload">
+       <div class="title_public">
+        企业信息
+      </div>
+      <div class="corpInfo-wrapper">
         <div class="part-wrapper">
           <div class="part-title">
-            套餐信息
+            基本信息
           </div>
           <div class="basic-wrapper">
-            <div class="corp-info-item">
-              <div class="left">当前套餐</div>
+            <div class="corp-info-item corp-logo-item">
+              <div class="left">企业logo</div>
               <div class="right">
                 <div class="default">
-                  <span class="span">{{corpData.packageName}}</span>
-                  <span class="span upgrade" @click="upgrade">
-                    续费升级
+                  <div class="default-left default-logo">
+                    <upload-logo :isUpload="saveloginCompany.admin" v-if="corpData.logo || corpData.logo==='' || corpData.logo===null" :imgSrc="corpData.logo"></upload-logo>
+                  </div>
+                  <div class="default-right default-logo-text">建议尺寸：300X300像素</div>
+                </div>
+              </div>
+            </div>
+            <div class="corp-info-item">
+              <div class="left">企业名称</div>
+              <div class="right">
+                <div class="default" v-if="typeEdit!=='company'">
+                  <span class="span nowrap" :title="corpData.corpName">{{corpData.corpName || '- -'}}</span>
+                  <span class="span nowrap-icon" v-if="saveloginCompany.admin">
+                    <Icon class="edit-icon handle" title="修改" @click="editInfo('company', corpData.corpName)" type="edit"></Icon>
+                  </span>
+                </div>
+                <div class="edit" v-if="typeEdit=='company'">
+                  <Input ref="inputFocus" v-model="companyInfo" placeholder="请输入企业名称"></Input>
+                  <span class="span handle" @click="saveEdit('company')">保存</span>
+                  <span class="span handle cancel" @click="cancelEdit">取消</span>
+                  <div class="err" v-show="errorType=='company'">{{corpErrorText}}</div>
+                </div>
+              </div>
+            </div>
+            <div class="corp-info-item">
+              <div class="left">所在地址</div>
+              <div class="right">
+                <div class="default">
+                  <span class="span">{{corpData.province}}{{corpData.city}}{{corpData.area}}</span>
+                  <span class="span" v-if="saveloginCompany.admin">
+                    <Icon class="edit-icon handle" title="修改" @click="editInfo('area')" type="edit"></Icon>
                   </span>
                 </div>
               </div>
             </div>
             <div class="corp-info-item">
-              <div class="left">套餐状态</div>
+              <div class="left">创建时间</div>
               <div class="right">
                 <div class="default">
-                  <span class="span" v-show="corpData.status==='ACTIVE'">正常</span>
-                  <span class="span" v-show="corpData.status==='DISABLED'">停用</span>
-                  <span class="span" v-show="corpData.status==='EXPIRE'">已过期</span>
-                  <span class="span" v-show="corpData.status==='FORBIDDEN'">禁用</span>
-                  <span class="span" v-show="corpData.status==='DOING'">新创建</span>
+                  <span class="span">{{corpData.createTime}}</span>
                 </div>
               </div>
             </div>
             <div class="corp-info-item">
-              <div class="left">有效时间</div>
+              <div class="left">联系人</div>
+              <div class="right">
+                <div class="default" v-if="typeEdit!=='linkman'">
+                  <span class="span nowrap" :title="corpData.contactName">{{corpData.contactName}}</span>
+                  <span class="span nowrap-icon" v-if="saveloginCompany.admin">
+                    <Icon class="edit-icon handle" title="修改" @click="editInfo('linkman', corpData.contactName)" type="edit"></Icon>
+                  </span>
+                </div>
+                <div class="edit" v-if="typeEdit=='linkman'">
+                  <Input ref="inputFocus" v-model="companyInfo" placeholder="请输入联系人姓名"></Input>
+                  <span class="span handle" @click="saveEdit('linkman')">保存</span>
+                  <span class="span handle cancel" @click="cancelEdit">取消</span>
+                  <div class="err" v-show="errorType=='linkman'">{{linkmanErrorText}}</div>
+                </div>
+              </div>
+            </div>
+            <div class="corp-info-item">
+              <div class="left">手机号</div>
               <div class="right">
                 <div class="default">
-                  <span class="span">{{corpData.startTime}} 至 {{corpData.endTime}}</span>
+                  <span class="span">{{corpData.phoneNumber}}</span>
+                  <span class="span" v-if="saveloginCompany.admin">
+                    <Icon class="edit-icon handle" title="修改" @click="editInfo('phone')" type="edit"></Icon>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="corp-info-item corp-info-weixin">
+              <div class="left">
+                <div>管理员微信</div>
+                <div class="tip-text">(创建人)</div>
+              </div>
+              <div class="right">
+                <div class="default">
+                  <img class="default-left default-weixin" :src="corpData.picUrl" alt="logo">
+                  <div class="default-right default-weixin-text">{{corpData.accountNickName}}</div>
+                </div>
+              </div>
+            </div>
+            <div class="corp-info-item">
+              <div class="left">已绑公众号</div>
+              <div class="right">
+                <div class="default">
+                  <span class="span">{{corpData.appidNum}}个</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="part-wrapper">
+            <div class="part-title">
+              套餐信息
+            </div>
+            <div class="basic-wrapper">
+              <div class="corp-info-item">
+                <div class="left">当前套餐</div>
+                <div class="right">
+                  <div class="default">
+                    <span class="span">{{corpData.packageName}}</span>
+                    <span class="span upgrade" @click="upgrade">
+                      续费升级
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="corp-info-item">
+                <div class="left">套餐状态</div>
+                <div class="right">
+                  <div class="default">
+                    <span class="span" v-show="corpData.status==='ACTIVE'">正常</span>
+                    <span class="span" v-show="corpData.status==='DISABLED'">停用</span>
+                    <span class="span" v-show="corpData.status==='EXPIRE'">已过期</span>
+                    <span class="span" v-show="corpData.status==='FORBIDDEN'">禁用</span>
+                    <span class="span" v-show="corpData.status==='DOING'">新创建</span>
+                  </div>
+                </div>
+              </div>
+              <div class="corp-info-item">
+                <div class="left">有效时间</div>
+                <div class="right">
+                  <div class="default">
+                    <span class="span">{{corpData.startTime}} 至 {{corpData.endTime}}</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </data-loading>
     <drawer v-model="editPhoneDrawer" titleTips="修改手机号">
       <div class="drawer-phone" slot="content">
         <componentEditPhone @success="editSuccess" ref="componentEditPhone" type="editPhoneDrawer" :params="infoParams"></componentEditPhone>
@@ -188,7 +190,8 @@ export default {
       corpErrorText: '企业名称不能为空',
       linkmanErrorText: '联系人姓名不能为空!',
       corpData: {},
-      address: ''
+      address: '',
+      loadingStatu: 1,
     }
   },
   computed: {
@@ -199,6 +202,22 @@ export default {
   watch: {
     saveloginCompany(params) {
       this.getCorpInfoMulti(params.packId)
+    },
+    typeEdit(val) {
+      switch (val) {
+        case 'linkman':
+          this.$nextTick(() => {
+            this.$refs.inputFocus.focus()
+          })
+          break
+        case 'company':
+          this.$nextTick(() => {
+            this.$refs.inputFocus.focus()
+          })
+          break  
+        default:
+          break
+      }
     }
   },
   mounted() {
@@ -211,7 +230,7 @@ export default {
       updateCorpName(params).then(data => {
         switch (data.code) {
           case 1:
-            this.$Message.success('修改成功')
+            this.$Message.success('企业名称修改成功！')
             this.typeEdit = ''
             this.getCorpInfoMulti(this.saveloginCompany.packId)
             break
@@ -224,34 +243,55 @@ export default {
             this.corpErrorText = '修改失败！公司不存在或不可用'
             break
           default:
+            this.$Message.error('企业名称修改失败！')
             break
         }
+      }).catch(() => {
+        this.$Message.error('企业名称修改失败！')
       })
     },
     getCorpInfoMulti(params) {
       let obj = {corpPackId: params}
-      this.$get(this.fylPath.getCorpInfoMulti, obj).then(data => {
-        this.corpData = data.data
-        this.corpData.startTime = this.corpData.startTime.substring(0,10)
-        this.corpData.endTime = this.corpData.endTime.substring(0,10)
-        let telephone = this.corpData.telephone
-        this.corpData.phoneNumber = telephone.substring(0,3) + '-' + telephone.substring(3,7) + '-' + telephone.substring(7)
-        this.infoParams = {
-          oldMobile: this.corpData.telephone,
-          applyId: this.corpData.corpId
+      this.$get(this.flyPath.getCorpInfoMulti, obj).then(data => {
+        if (data.code === 1) {
+          this.loadingStatu = 2
+          this.corpData = data.data
+          if (this.corpData.startTime) {
+             this.corpData.startTime = this.corpData.startTime.substring(0,10)
+          } else {
+             this.corpData.startTime = 0
+          }
+          if (this.corpData.endTime) {
+            this.corpData.endTime = this.corpData.endTime.substring(0,10)
+          } else {
+             this.corpData.endTime = 0
+          }
+          this.corpData.endTime = this.corpData.endTime.substring(0,10) || 0
+          let telephone = this.corpData.telephone
+          this.corpData.phoneNumber = telephone.substring(0,3) + '-' + telephone.substring(3,7) + '-' + telephone.substring(7)
+          this.infoParams = {
+            oldMobile: this.corpData.telephone,
+            applyId: this.corpData.corpId || this.getCookie('currentCorp').applyId
+          }
+          let currentCorp = {
+            applyId: this.corpData.corpId || this.getCookie('currentCorp').applyId,
+            corpName: this.corpData.corpName
+          }
+          this.setCookie('currentCorp', currentCorp)
+        } else {
+          this.loadingStatu = 3
+          this.$Message.error(data.message)
         }
-        let currentCorp = {
-          applyId: this.corpData.corpId,
-          corpName: this.corpData.corpName
-        }
-        this.setCookie('currentCorp', currentCorp)
       })
     },
+    reload() {
+      this.getCorpInfoMulti(this.saveloginCompany.packId)
+    },
     updateAdminEmployeeName(params) {
-      this.$get(this.fylPath.updateAdminEmployeeName, params).then(data => {
+      this.$get(this.flyPath.updateAdminEmployeeName, params).then(data => {
         switch (data.code) {
           case 1:
-            this.$Message.success('修改成功')
+            this.$Message.success('联系人修改成功！')
             this.typeEdit = ''
             this.getCorpInfoMulti(this.saveloginCompany.packId)
             break
@@ -264,15 +304,18 @@ export default {
             this.corpErrorText = '修改失败！不是该公司员工或员工身份不为管理员'
             break      
           default:
+            this.$Message.error('联系人修改失败！')
             break
         }
+      }).catch(() => {
+        this.$Message.error('联系人修改失败！')
       })
     },
     updateCorpAddress(params) {
-      this.$get(this.fylPath.updateCorpAddress, params).then(data => {
+      this.$get(this.flyPath.updateCorpAddress, params).then(data => {
         switch (data.code) {
           case 1:
-            this.$Message.success('修改成功')
+            this.$Message.success('所在地区修改成功！')
             this.editAreaDrawer = false
             this.getCorpInfoMulti(this.saveloginCompany.packId)
             break
@@ -285,11 +328,12 @@ export default {
             this.corpErrorText = '修改失败！不是该公司员工或员工身份不为管理员'
             break   
           default:
+            this.$Message.error('所在地区修改失败！')
             break
         }
       }).catch(() => {
         this.editAreaDrawer = false
-        this.$Message.warning('修改失败')
+        this.$Message.error('所在地区修改失败！')
       })
     },
     savePhone() {
@@ -298,10 +342,10 @@ export default {
     saveArea() {
       let areaArr = this.address.split('/')
       if (areaArr.length === 1) {
-        this.$Message.warning('您还没有选择市')
+        this.$Message.error('您还没有选择市')
         return
       } else if (areaArr.length === 2) {
-        this.$Message.warning('您还没有选择区')
+        this.$Message.error('您还没有选择区')
         return
       }
       let params = {
@@ -317,7 +361,7 @@ export default {
         this.getCorpInfoMulti(this.saveloginCompany.packId)
       } else {
         this.editPhoneDrawer = false
-        this.$Message.warning('修改失败')
+        this.$Message.error('修改失败')
       } 
     },
     areaSelect(area) {
@@ -349,18 +393,27 @@ export default {
         } else {
           this.corpErrorText = '企业名称不能为空!'
         }
+        return
+      } else if (this.companyInfo.trim().length > 100) {
+        this.errorType = type
+        if (type === 'linkman') {
+          this.linkmanErrorText = '联系人长度不能大于100!'
+        } else {
+          this.corpErrorText = '企业名称长度不能大于100!'
+        }
+        return
       }
       switch (type) {
         case 'company':
           let params = {
             applyId: this.getCookie('currentCorp').applyId,
-            corpName: this.companyInfo
+            corpName: this.companyInfo.trim()
           }
           this.updateCorpName(params)
           break
         case 'linkman':
           let linkmanparams = {
-            name: this.companyInfo
+            name: this.companyInfo.trim()
           }
           this.updateAdminEmployeeName(linkmanparams)
           break  

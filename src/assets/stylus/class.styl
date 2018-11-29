@@ -103,3 +103,38 @@ i
  light_color = #e3e4e6
  err_color = #f56c6c
  success_color = #09bb07
+
+//
+#linkList
+  height 100%
+  .li_wrap
+    position relative
+    height 80px
+
+    boxSizing()
+    .badge
+      display none
+    .deep_wrap
+      position relative
+      boxSizing()
+      transform-origin:center center
+      transition: 0.3s all cubic-bezier(.46, 1, .23, 1.52);
+      radius(5px)
+    &:hover, &.active
+      z-index 2
+      padb(0px)
+      .deep_wrap
+        margin-top:-3px
+        bgColor()
+        boxShadow(2px 0px 10px 2px #409fff)
+    &.active
+      .deep_wrap
+        boxShadow(2px 0px 10px 2px #409fff)
+        border_(#409fff)
+      .badge
+        display block
+        position absolute
+        bottom 0
+        right 0
+        i
+          color #409fff

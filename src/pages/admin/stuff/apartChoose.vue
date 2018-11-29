@@ -70,7 +70,7 @@
                     this.showModal = false
                     this._BUS.$emit('apartChoosed', this.selectApart)
                 } else {
-                    this.$Message.info('请选择至少一个部门')
+                    this.$Message.error('请选择至少一个部门')
                 }
             }
         }

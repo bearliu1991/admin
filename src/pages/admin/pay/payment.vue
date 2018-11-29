@@ -46,7 +46,7 @@
         <Col span="8">
          <div class="info-last">
            <span class="text1">实付金额</span>
-           <span class="text2"><span class="text3">¥</span> {{orderDetailData.orderPayprice}}</span>
+           <span class="text2"><span class="text3">¥</span> {{orderDetailData.orderPayprice}}元</span>
          </div>
         </Col>
       </Row>
@@ -66,7 +66,6 @@
 <script>
 import PayWay from '@/pages/admin/pay/payWay'
 import {getSimpleDetail, getOrderDetail} from '@/api/query'
-import {getCookie, setCookie} from '@/utils/cookies'
 const timerNum = 5000
 export default {
   name: 'payment',
@@ -101,8 +100,8 @@ export default {
     // 轮询查看订单状态
     getSimpleDetail() {
       let params = {
-        orderId: getCookie('orderId'),
-        corpId: getCookie('corpId'),
+        orderId: this.getCookie('orderId'),
+        corpId: this.getCookie('corpId'),
       }
       getSimpleDetail(params).then(data => {
         if (data.code === 1) {
@@ -115,22 +114,22 @@ export default {
     },
     getOrderDetail() {
       let params = {
-        orderId: getCookie('orderId'),
-        corpId: getCookie('corpId'),
+        orderId: this.getCookie('orderId'),
+        corpId: this.getCookie('corpId'),
       }
       getOrderDetail(params).then(data => {
         switch (data.code) {
           case 1:
-            setCookie('corpName', data.data.corpName)
-            setCookie('orderPayPrice', data.data.orderPayprice / 100)
+            this.setCookie('corpName', data.data.corpName)
+            this.setCookie('orderPayPrice', this.insertPoint(data.data.orderPayprice))
             this.orderDetailData = data.data
-            this.orderDetailData.validDay = this.transferUnit(data.data)
-            this.orderDetailData.orderPayprice = (data.data.orderPayprice / 100) || 0
+            this.orderDetailData.validDay = data.data.timeUnitNum * data.data.goodsNum + data.data.timeUnit
+            this.orderDetailData.orderPayprice = this.insertPoint(data.data.orderPayprice || 0)
             this.transferProps.orderPayprice = this.orderDetailData.orderPayprice
             this.transferProps.orderId = data.data.orderId
             break
           default:
-            this.$Message.warning(data.message)  
+            this.$Message.error(data.message)  
             break
         }
       })
@@ -158,18 +157,18 @@ export default {
     },
     againPay() {
       let params = {
-        corpId: getCookie('corpId'),
+        corpId: this.getCookie('corpId'),
       }
       this.getExistOrder(params).then(data => {
         if (data.code === 1) {
           if (data.data.isBuy) {
-            setCookie('orderId', data.data.orderId)
+            this.setCookie('orderId', data.data.orderId)
             this.isOrder = true
           } else {
             this.$emit('restartOrder')
           }
         } else {
-          this.$Message.warning(data.message)
+          this.$Message.error(data.message)
         }
       })
     },

@@ -90,11 +90,6 @@ export default {
     }
   },
   created() {
-    this.$root.Bus.$on('calcScrollHeight', () => {
-      setTimeout(() => {
-        this.calcHeight()
-      },50)
-    })
   },
   destroyed() {
     this.$root.Bus.$off('calcScrollHeight')
@@ -110,6 +105,11 @@ export default {
     })
     window.addEventListener('resize', () => {
       this.calcHeight()
+    })
+    this.$root.Bus.$on('calcScrollHeight', () => {
+      setTimeout(() => {
+        this.calcHeight()
+      },50)
     })
   },
   methods: {

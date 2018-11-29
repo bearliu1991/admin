@@ -3,10 +3,10 @@
  */
 
 import api from './index'
-// import {getCookie} from '../utils/cookies'
-const apiHost = process.env.API_ROOT
+// import {this.getCookie} from '../utils/cookies'
+const apiHost = ''
 // 预览上传的fastfds服务的文件
-// const preview_file = process.env.FILESERVER_ROOT 
+// const preview_file = process.env.FILESERVER_ROOT
 // 上传名片
 export const uploadPostcard = (params) => api.get(apiHost + '/uploadpostcard', params)
 // 下载名片
@@ -15,15 +15,15 @@ export const downloadPostcard = (params) => {
     window.location.href = downLoadUrl
 }
 // 获得sessionId
-export const getSessionId = () => api.get(apiHost + '/getSessionId')
+export const getSessionId = () => api.get(apiHost + '/api/getSessionId')
 
 // 生成二维码
 export const getTmpQrcode = (params) => api.get(apiHost + '/api/adminUser/getTmpQrcode', params)
 // 获取用户信息,企业信息等
 export const getSession = () => {
-    // setCookie("loginFlag", "0", 1)
-    // let loginFlag = getCookie("loginFlag")
-    
+    // this.setCookie("loginFlag", "0", 1)
+    // let loginFlag = this.getCookie("loginFlag")
+
     return api.get(apiHost + '/api/adminUser/getSession')
 }
 // 获取默认免费信息 套餐id 套餐角色id 官方appid对应的accountid
@@ -33,7 +33,7 @@ export const resendCode = (params) => api.get(apiHost + '/api/adminUser/resendCo
 // 加载系统配置内容树
 export const loadTConfigListTree = (params) => api.get(apiHost + '/api/adminUser/loadTConfigListTree', params)
 // 加载系统配置内容树
-export const queryTItemValueByPager = (params) => api.get(apiHost + '/api/adminUser/queryTItemValueByPager', params)
+export const getValueByKeyAndPv = (params) => api.get(apiHost + '/api/adminUser/getValueByKeyAndPv', params)
 // 保存创建公司申请
 export const saveCorpCreateApply = (params) => api.get(apiHost + '/api/adminUser/saveCorpCreateApply', params)
 // 获取当前用户创建或加入（中） 与 审核通过的 公司列表
@@ -59,9 +59,9 @@ export const getPersonalInfo = () => api.get(apiHost + '/api/adminCenter/getPers
 // 获得关键指标
 export const getKeyIndicators = (params) => api.get(apiHost + '/api/survey/getKeyIndicators', params)
 // 获得公司状态
-export const queryCompanyStats = (params) => api.get(apiHost + '/api/survey/queryCompanyStats', params)
+export const queryCompanyStats = (params, isSaveToken) => api.get(apiHost + '/api/survey/queryCompanyStats', params, isSaveToken)
 // 进入公司信息
-export const saveloginCompany = (params) => api.get(apiHost + '/api/survey/saveloginCompany', params)
+export const saveloginCompany = (params, isSaveToken) => api.get(apiHost + '/api/survey/saveloginCompany', params, isSaveToken)
 // 获取公司统计信息
 export const getCorpStatisticsInfo = (params) => api.get(apiHost + '/api/survey/getCorpStatisticsInfo', params)
 // 根据id查询公司套餐
@@ -83,7 +83,7 @@ export const updateCssWxPublicAccountToDisabled = (params) => api.get(apiHost + 
 // 启用微信公众号
 export const updateCssWxPublicAccountToActive = (params) => api.get(apiHost + '/api/tencent/updateCssWxPublicAccountToActive', params)
 // 公众号信息一键同步
-export const updateCssWxPublicAccountDataToDb = (params) => api.get(apiHost + '/api/tencent/updateCssWxPublicAccountDataToDb', params)
+export const updateCssWxPublicAccountDataToDb = (params) => api.post(apiHost + '/api/tencent/updateCssWxPublicAccountDataToDb', params)
 // 停用某用户
 export const stopUser = (params) => api.get(apiHost + '/api/survey/getAuthUrl', params)
 // 启用某用户
@@ -105,21 +105,21 @@ export const saveSeatNo = (params) => api.get(apiHost + '/api/seats/saveSeatNo',
 // 保存坐席接口
 export const saveSeat = (params) => api.post(apiHost + '/api/seats/saveSeat', params)
 // 修改坐席接口
-export const updateSeat = (params) => api.get(apiHost + '/api/seats/updateSeat', params)
+export const updateSeat = (params) => api.post(apiHost + '/api/seats/updateSeat', params)
 // 获取坐席详情接口
 export const getSeatDetail = (params) => api.get(apiHost + '/api/seats/getSeatDetail', params)
 // 查询坐席列表接口
 export const getSeatList = (params) => api.get(apiHost + '/api/seats/getSeatList', params)
 // 批量为坐席修改公众号权限
-export const updateSeatAuthByBatch = (params) => api.get(apiHost + '/api/seats/updateSeatAuthByBatch', params)
+export const updateSeatAuthByBatch = (params) => api.post(apiHost + '/api/seats/updateSeatAuthByBatch', params)
 // 解除授权/停用/批量停用/启用统一调用接口
-export const updateSeatStatus = (params) => api.get(apiHost + '/api/seats/updateSeatStatus', params)
+export const updateSeatStatus = (params) => api.post(apiHost + '/api/seats/updateSeatStatus', params)
 // 查询公司套餐的权限列表
 export const queryCorpPackRoleList = (params) => api.get(apiHost + '/api/survey/queryCorpPackRoleList', params)
 // 修改坐席基本信息接口
 export const updateSeatBaseInfo = (params) => api.get(apiHost + '/api/seats/updateSeatBaseInfo', params)
 // 修改坐席权限接口
-export const updateSeatAuth = (params) => api.get(apiHost + '/api/seats/updateSeatAuth', params)
+export const updateSeatAuth = (params) => api.post(apiHost + '/api/seats/updateSeatAuth', params)
 // 修改个性化坐席接口
 export const updateConditionalSeat = (params) => api.post(apiHost + '/api/seats/updateConditionalSeat', params)
 // 是否存在待支付订单

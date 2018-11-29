@@ -34,15 +34,6 @@
 </template>
 
 <script>
-import {
-  setCookieSession,
-  removeCookieSession,
-  removeToken,
-  removeCookie,
-  setCookie,
-  getCookie
-} from '@/utils/cookies'
-import { getSessionId } from '@/api/query'
 import { mapGetters, mapActions } from 'vuex'
 import TitleTips from '@/components/TitleTips'
 import UpgradeOrder from '@/components/public/UpgradeOrder'
@@ -54,12 +45,12 @@ export default {
       timer: null,
       wrapperMargin: false,
       scrollMargin: false,
-      showFullPage: !!getCookie('saveStepsData'),
+      showFullPage: !!this.getCookie('saveStepsData'),
       saveStepsData: {
         current: 0,
         name: this.$route.name
       },
-      corpName: getCookie('corpName') || '',
+      corpName: this.getCookie('corpName') || '',
       orderDetailFullPage: false,
       routerName: 'createCompany',
       curOrderInfo: {}
@@ -86,7 +77,12 @@ export default {
       return this.isOrder === 4
     }
   },
+  created() {
+  },
   mounted() {
+    if (this.ltIE10()) {
+      this.ieWarning()
+    }
     this.$root.Bus.$on('hideFullPageDrawer', value => {
       if (value) {
         this.cancelOrder()
@@ -100,7 +96,7 @@ export default {
     this._BUS.$on('orderPayNow', value => {
       this.goPay()
     })
-    // if (!getCookieSession()) {
+    // if (!this.getCookieSession()) {
     //   this.getSessionId()
     // }
     // if (!this.timer) {
@@ -110,14 +106,17 @@ export default {
     // }
   },
   methods: {
-    getSessionId() {
-      getSessionId().then(data => {
-        setCookieSession(data.sessionId, 0.5)
+    ieWarning() {
+      this.$Notice.warning({
+        title: '浏览器版本过低',
+        desc:
+          '为了给您提供更优质的网页浏览体验，建议使用IE10及以上版本的浏览器',
+        duration: 0
       })
     },
     setCurrentCokie(val) {
       this.saveStepsData.current = val
-      setCookie('saveStepsData', this.saveStepsData)
+      this.setCookie('saveStepsData', this.saveStepsData)
     },
     goPay() {
       this.saveStepsData.name = this.$route.name
@@ -125,11 +124,11 @@ export default {
       this.showFullPage = true
     },
     restartPay() {
-      let orderId = getCookie('orderId')
+      let orderId = this.getCookie('orderId')
       let params = {
         orderIds: [orderId],
-        orderStatus: 0,
-        corpId: getCookie('corpId')
+        orderStatus: 'CANCEL',
+        corpId: this.getCookie('corpId')
       }
       this.getCancelOrder(params).then(data => {
         if (data.code === 1) {
@@ -138,28 +137,29 @@ export default {
           this.orderDetailFullPage = false
           this.showFullPage = true
         } else {
-          this.$Message.warning(data.message)
+          this.$Message.error(data.message)
         }
       })
     },
     cancelOrder() {
-      let orderId = getCookie('orderId')
+      let orderId = this.getCookie('orderId')
       let params = {
         orderIds: [orderId],
-        orderStatus: 0,
-        corpId: getCookie('corpId')
+        orderStatus: 'CANCEL',
+        corpId: this.getCookie('corpId')
       }
       this.getCancelOrder(params).then(data => {
         if (data.code === 1) {
           this.$Message.success('取消订单成功')
         } else {
-          this.$Message.warning(data.message)
+          this.$Message.error(data.message)
         }
       })
     },
     viewDetail() {
-      this.curOrderInfo.orderId = getCookie('orderId')
-      this.curOrderInfo.corpId = getCookie('corpId')
+      this.curOrderInfo.orderId = this.getCookie('orderId')
+      this.curOrderInfo.corpId = this.getCookie('corpId')
+      this.curOrderInfo.status = this.getCookie('status')
       this.orderDetailFullPage = true
     },
     ...mapActions({
@@ -170,33 +170,37 @@ export default {
     message(val) {
       if (val === 2) {
         if (this.$route.name !== 'login' && this.$route.name !== 'register') {
-          removeCookieSession()
-          removeToken()
-          removeCookie('accountList')
-          removeCookie('currentCorp')
-          removeCookie('preAuthCode')
-          removeCookie('saveStepsData')
-          removeCookie('companyParams')
-          removeCookie('seatsInfo')
-          removeCookie('orderId')
-          removeCookie('corpId')
-          removeCookie('orderPayPrice')
-          removeCookie('isCreatCompany')
-          getSessionId().then(data => {
-            data.sessionId = data.sessionId + 'F'
-            setCookieSession(data.sessionId, 0.041)
-            this.$router.push({ name: 'login' })
-          })
+          this.removeCookieSession()
+          this.removeToken()
+          this.removeCookie('accountList')
+          this.removeCookie('currentCorp')
+          this.removeCookie('preAuthCode')
+          this.removeCookie('saveStepsData')
+          this.removeCookie('companyParams')
+          this.removeCookie('seatsInfo')
+          this.removeCookie('orderId')
+          this.removeCookie('status')
+          this.removeCookie('corpId')
+          this.removeCookie('orderPayPrice')
+          this.removeCookie('isCreatCompany')
+          this.removeCookie('corpName')
+          this.removeCookie('nextOrderStep')
+          this.removeCookie('secondMenu')
+          this.removeCookie('mainMenu')
+          this.$router.push({ name: 'login' })
         }
       }
     },
     $route(to, from) {
       this.routerName = to.name
       if (to.name !== 'createCompany') {
-        this.showFullPage = !!getCookie('saveStepsData')
+        this.showFullPage = !!this.getCookie('saveStepsData')
       }
       this.orderDetailFullPage = false
       this.setRouterInfo(to)
+      this.$nextTick(() => {
+        this.$root.Bus.$emit('calcScrollHeight')
+      })
       switch (to.name) {
         case 'register':
           break
@@ -223,7 +227,7 @@ export default {
       }
     },
     showFullPage() {
-      this.corpName = getCookie('corpName') || ''
+      this.corpName = this.getCookie('corpName') || ''
     }
   },
   components: {

@@ -67,13 +67,11 @@
 </template>
 <script>
 import { phone } from '@/utils/regExp'
-import { getToken } from '@/utils/cookies'
 import {
   getScanResult,
   updateCorpMobileById,
   resendCode,
-  getTmpQrcode,
-  getDefaultInfo
+  getTmpQrcode
 } from '@/api/query'
 const TIMENUM = 60
 export default {
@@ -135,9 +133,8 @@ export default {
       oneMinute: '获取验证码',
       alreadyRegister: null,
       codeError: null,
-      token: getToken(),
+      token: this.getToken(),
       tmpData: {},
-      appAccountId: '',
       verifyRandomStr: '',
       verifyStatus: 0,
       timer: null,
@@ -148,7 +145,7 @@ export default {
     }
   },
   mounted() {
-    this.getDefaultInfo()
+    this.getTmpQrcode()
   },
   watch: {
     'formEditPhone.phone'(val) {
@@ -176,6 +173,7 @@ export default {
             break
           case 2518:
             this.verifyStatus = 2
+            clearInterval(this.timer)
             break
           case 2517:
             break 
@@ -190,7 +188,7 @@ export default {
         platformType: 3,
         qrcodeType: 'TMPQRCODE_MODMOBILE_VALID',
         expireSeconds: 6000,
-        appAccountId: this.appAccountId,
+        appAccountId: null,
         corpId: this.params.applyId,
         mobile: this.params.oldMobile
       }
@@ -214,12 +212,12 @@ export default {
         this.refreshBtn = false
       })
     },
-    getDefaultInfo() {
-      getDefaultInfo().then(data => {
-        this.appAccountId = data.data.defaultWechatAccountid
-        this.getTmpQrcode()
-      })
-    },
+    // getDefaultInfo() {
+    //   getDefaultInfo().then(data => {
+    //     this.appAccountId = data.data.defaultWechatAccountid
+    //     this.getTmpQrcode()
+    //   })
+    // },
     updateCorpMobileById() {
       let params = {
         applyId: this.params.applyId,
@@ -234,7 +232,7 @@ export default {
       updateCorpMobileById(params).then(data => {
         switch (data.code) {
           case 1:
-            this.$Message.success('恭喜你，保存成功！')
+            this.$Message.success('手机号修改成功！')
             if (this.type === 'editPhone') {
               this.$router.push({ name: 'personInfo' })
             } else {
@@ -245,20 +243,23 @@ export default {
             this.codeError = '验证码错误'
             break
           case 2519:
-            this.$Message.warning('请先用微信扫描上面的二维码验证身份')
+            this.$Message.error('请先用微信扫描上面的二维码验证身份')
             break
           case 1002:
-            this.$Message.warning('请先用微信扫描上面的二维码验证身份')
+            this.$Message.error('请先用微信扫描上面的二维码验证身份')
             break    
-          case 2502:
+          case 2525:
             this.oneMinute = '获取验证码'
             this.codeBtn = false
+            clearInterval(this.countTimer)
             this.alreadyRegister = '该手机号已绑定，请重新输入'
             break
           default:
+            this.$Message.error('手机号修改失败！')
             break
         }
       }).catch(() => {
+        this.$Message.error('手机号修改失败！')
         this.$emit('success', false)
       })
     },

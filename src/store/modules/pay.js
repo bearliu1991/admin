@@ -45,7 +45,9 @@ const actions = {
         setCookie('corpId', params.corpId)
         if (data.data.isBuy) {
           let orderId = data.data.orderId
+          let status = data.data.orderStatus
           setCookie('orderId', orderId)
+          setCookie('status', status)
           commit('SET_CORPID', params.corpId)
           switch (data.data.orderStatus) {
             case 0:
@@ -60,14 +62,17 @@ const actions = {
           }
         } else {
           removeCookie('orderId')
+          removeCookie('status')
           commit('SET_ISFULLPAGE', 2)
         }
       } else {
+        removeCookie('status')
         removeCookie('orderId')
         removeCookie('corpId')
+        removeCookie('corpName')
         commit('SET_ISORDER', 1)
         commit('SET_ISFULLPAGE', 1)
-        iView.Message.warning(data.message)
+        iView.Message.error(data.message)
       }
     })
   }

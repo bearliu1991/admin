@@ -3,9 +3,9 @@
 import 'babel-polyfill'
 import Vue from 'vue'
 import App from './App'
+import utils from '@/utils/index'
 import router from './router'
 import store from './store'
-import utils from '@/utils/index'
 import iView from 'iview'
 import 'iview/dist/styles/iview.css'
 import '@/assets/stylus/iview.less'
@@ -22,7 +22,7 @@ Vue.use(utils)
 
 Vue.config.productionTip = false
 iView.Message.config({
-  duration: 2
+  duration: 2.5
 })
 /* eslint-disable no-new */
 new Vue({

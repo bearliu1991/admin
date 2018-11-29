@@ -5,8 +5,6 @@ const state = {
   corpInfoData: {
     loadingDataStatu: 1
   },
-  // 进入公司信息
-  loginCompanyData: {},
   // 关键指标
   keyIndicatorsData: {
     loadingDataStatu: 1
@@ -17,7 +15,6 @@ const state = {
 const getters = {
   getCorpPackage: state => state.corpPackageData,
   getCorpInfo: state => state.corpInfoData,
-  getLoginCompany: state => state.loginCompanyData,
   getKeyIndicators: state => state.keyIndicatorsData,
   getSaveloginCompany: state => state.saveloginCompany
 }
@@ -27,9 +24,6 @@ const mutations = {
   },
   SET_CORPINFO(state, corpInfoData) {
     state.corpInfoData = corpInfoData
-  },
-  SET_LOGINCOMPANY(state, loginCompanyData) {
-    state.loginCompanyData = loginCompanyData
   },
   SET_KEYINDICATORS(state, keyIndicatorsData) {
     state.keyIndicatorsData = keyIndicatorsData
@@ -48,9 +42,6 @@ const actions = {
   },
   setCorpInfo({commit}, corpInfoData) {
     commit('SET_CORPINFO', corpInfoData)
-  },
-  setLoginCompany({commit}, loginCompanyData) {
-    commit('SET_LOGINCOMPANY', loginCompanyData)
   },
   setKeyIndicators({commit}, keyIndicatorsData) {
     commit('SET_KEYINDICATORS', keyIndicatorsData)

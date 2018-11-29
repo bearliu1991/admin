@@ -38,7 +38,7 @@
               <div class="search">
                 <Input placeholder="请输入姓名搜索" v-model="searchName" icon="ios-search-strong"></Input>
               </div>
-              <data-loading :data-satau="loading.staff">
+              <data-loading :data-satau="loading.staff" @reload="reload">
                 <div class="staff-list">
                   <scroll-bar>
                     <div class="staff-list-wrapper">
@@ -93,9 +93,9 @@ export default {
       eeId: '',
       eeIdCopy: '',
       loading: {
-        tree: 1,
         staff: 1
-      }
+      },
+      currentVal: ''
     }
   },
   mounted() {
@@ -142,6 +142,9 @@ export default {
     })
   },
   methods: {
+    reload() {
+      this.getCurrentNode(this.currentVal)
+    },
     iterateCurrNode(val) {
       if (val.currentNode) {
         return this.iterateCurrNode(val.currentNode)
@@ -150,6 +153,7 @@ export default {
       }
     },
     getCurrentNode(val) {
+      this.currentVal = val
       let node = this.iterateCurrNode(val)
       this.loading.staff = 1
       let param = {

@@ -208,7 +208,6 @@
 </template>
 <script>
 import {mapGetters} from 'vuex'
-import { getCookie } from '@/utils/cookies'
 export default {
   props: {
     editTabsVal: {
@@ -220,7 +219,6 @@ export default {
     return {
       TabsVal: '1',
       showSeatsInfo: false,
-      accountList: getCookie('accountList'),
       dialogCheckAllGroup: [],
       fansCheckAllGroup: []
     }

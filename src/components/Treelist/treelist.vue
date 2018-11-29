@@ -290,6 +290,9 @@ line-color = #d8dfe6
         width 999px
     .owly-title-text
         display inline-block
+        overflow:hidden
+        white-space:nowrap
+        text-overflow:ellipsis
         &:hover
             cursor: pointer
     .owly-operation
@@ -349,7 +352,7 @@ line-color = #d8dfe6
         width 16px
         height 16px
         content ''
-        background url('./plus.png') no-repeat
+        background url('./plus_n.png') no-repeat
         background-position 2px 1px
         background-color owly-parent-node-bg
         z-index 20
@@ -365,12 +368,17 @@ line-color = #d8dfe6
         z-index 10
 .owly-select .display-children-node:before
     background-color selected-color !important
+    background url('./plus.png') no-repeat
 .owly-title:hover .display-children-node:before
     background-color hover-color
 .owly-child-node-opened.display-children-node:before
-    background url('./minus.png') no-repeat
     background-position 2px 1px
     background-color owly-parent-node-bg
+    background url('./minus_n.png') no-repeat
+    margin-left: 3px
+.owly-select .owly-child-node-opened.display-children-node:before{
+    background url('./minus.png') no-repeat
+}
 .no-child-node
     display block
     position absolute

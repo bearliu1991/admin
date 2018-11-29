@@ -19,6 +19,17 @@
             <Button size="small" class="right" type="primary"  @click="goSurvey">继续使用</Button>
           </div>
         </div>
+        <div class="already-auth auth-item" v-show="status == 5">
+          <div class="auth-img">
+            <Icon type="information-circled" size="46" color="#F7BA2B"></Icon>
+          </div>
+          <div class="result">公众号已授权</div>
+          <div class="tips">该公众号已绑定在当前企业，请尝试其他公众号，或将此公众号解绑后再进行授权</div>
+          <div class="float-btn">
+            <Button size="small" class="left" type="ghost" @click="getAuthUrl">其他公众号</Button>
+            <Button size="small" class="right" type="primary"  @click="goSurvey">继续使用</Button>
+          </div>
+        </div>
         <div class="auth-error auth-item" v-show="status == 2">
           <div class="auth-img">
             <Icon type="close-circled" size="46" color="#F46C6C"></Icon>
@@ -75,8 +86,10 @@
   </div>
 </template>
 <script>
-import { setCookie, getCookie } from '@/utils/cookies'
 import { getScanResult, getAuthUrl, updateBindCorp } from '@/api/query'
+const timeoutNum = 10000
+const intervalNum = 2000
+const countDown = 10
 export default {
   name: 'authorization',
   data() {
@@ -87,9 +100,9 @@ export default {
       thirdplatUrl: '',
       status: 0,
       authCode: '',
-      countNum: 10,
+      countNum: countDown,
       randomStr: '',
-      preAuthCode: getCookie('preAuthCode'),
+      preAuthCode: this.getCookie('preAuthCode'),
       reAuth: 0,
       reAuthData: {}
     }
@@ -99,16 +112,6 @@ export default {
       this.authCode = this.$route.query.auth_code
     }
     this.getAuthorization()
-    this.numTime = setInterval(() => {
-      this.countNum--
-    }, 1000)
-    this.outTime = setTimeout(() => {
-      this.status = 4
-      clearInterval(this.timer)
-      clearInterval(this.numTime)
-      this.timer = null
-      this.numTime = null
-    }, 10000)
   },
   methods: {
     reBind() {
@@ -130,11 +133,14 @@ export default {
       getAuthUrl(params).then(data => {
         if (data.code === 1) {
           this.thirdplatUrl = data.data.url
-          setCookie('preAuthCode', data.data.preAuthCode)
+          this.setCookie('preAuthCode', data.data.preAuthCode)
           this.preAuthCode = data.data.preAuthCode
-          location.href = this.thirdplatUrl
-          // window.open(this.thirdplatUrl, '_blank')
+          this.skipUrl(this.thirdplatUrl)
+        } else {
+          this.$Message.error('获取授权url失败')
         }
+      }).catch(() => {
+        this.$Message.error('获取授权url失败')
       })
     },
     getAuthorization() {
@@ -147,10 +153,27 @@ export default {
         switch (data.code) {
           case 1:
             if (data.data.authed) {
-              this.reAuthData = data.data
-              this.status = 3
+              if (data.data.authed !== 'same') {
+                clearTimeout(this.outTime)
+                clearInterval(this.timer)
+                clearInterval(this.numTime)
+                this.outTime = null
+                this.timer = null
+                this.numTime = null
+                this.reAuthData = data.data
+                this.status = 3
+              } else {
+                clearTimeout(this.outTime)
+                clearInterval(this.timer)
+                clearInterval(this.numTime)
+                this.outTime = null
+                this.timer = null
+                this.numTime = null
+                this.status = 5
+              }
             } else {
               this.randomStr = data.data.randomStr
+              this.timeoutLoop()
               this.intervalLoop()
               this.status = 0
             }
@@ -262,13 +285,29 @@ export default {
         this.numTime = null
       })
     },
+    timeoutLoop() {
+      if (this.outTime) {
+        return
+      }
+      this.countNum = countDown
+      this.numTime = setInterval(() => {
+        this.countNum--
+      }, 1000)
+      this.outTime = setTimeout(() => {
+        this.status = 4
+        clearInterval(this.timer)
+        clearInterval(this.numTime)
+        this.timer = null
+        this.numTime = null
+      }, timeoutNum)
+    },
     intervalLoop() {
       if (this.timer) {
         return
       }
       this.timer = setInterval(() => {
         this.getScanResult()
-      }, 2000)
+      }, intervalNum)
     }
   },
   destroyed() {

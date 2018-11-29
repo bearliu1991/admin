@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import { loadTConfigListTree, queryTItemValueByPager } from '@/api/query'
+import { loadTConfigListTree, getValueByKeyAndPv } from '@/api/query'
 export default {
   props: {
     showCascaderModal: {
@@ -89,21 +89,19 @@ export default {
     selectAreaItem(str, itemValue, index, itemName) {
       if (str === 'CountyId') {
         this.activeItem.pro = index
+        this.activeItem.city = -1
+        this.activeItem.dis = -1
         this.areaName.proName = itemName
       } else {
         this.activeItem.city = index
+        this.activeItem.dis = -1
         this.areaName.cityName = itemName
       }
       let params = {
         itemKey: str,
-        itemValueOrItemPv: itemValue,
-        itemValue: '',
-        limit: '10000',
-        offset: '0',
-        order: 'DESC',
-        sort: ''
+        itemPv: itemValue,
       }
-      this.queryTItemValueByPager(params)
+      this.getValueByKeyAndPv(params)
     },
     selectDistric(index, itemName) {
       this.areaName.disName = itemName
@@ -117,7 +115,7 @@ export default {
     },
     loadTConfigListTree() {
       let obj = {
-        itemKeyOrItemKeyDesc: 'Province'
+        itemKey: 'Province'
       }
       this.loadingImg = true
       loadTConfigListTree(obj).then(data => {
@@ -127,13 +125,13 @@ export default {
         }
       })
     },
-    queryTItemValueByPager(params) {
+    getValueByKeyAndPv(params) {
       this.loadingImg = true
-      queryTItemValueByPager(params).then(data => {
+      getValueByKeyAndPv(params).then(data => {
         if (data.code === 1) {
           this.loadingImg = false
           if (params.itemKey === 'CountyId') {
-            this.cityData = data.data.records
+            this.cityData = data.data
             if (this.cityData.length <= 0) {
               this.$emit('parentCadcader', false)
             } else {
@@ -141,7 +139,7 @@ export default {
             }
             this.$emit('areaSelect', this.areaName.proName)
           } else {
-            this.districtData = data.data.records
+            this.districtData = data.data
             if (this.districtData.length <= 0) {
               this.$emit('parentCadcader', false)
             } else {

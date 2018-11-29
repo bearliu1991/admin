@@ -61,7 +61,7 @@
                 </div>
             </div>
           </FoldPanel>
-          <groupCheckBox :systems="systems" :isEdit="true" v-if="false"></groupCheckBox>
+          <GroupCheckBox :systems="systems" :isEdit="true" v-if="false"></GroupCheckBox>
         </div>
       </div>
     </div>
@@ -69,8 +69,7 @@
 </template>
 <script>
 import { mapActions, mapGetters } from 'vuex'
-import { getCookie } from '@/utils/cookies'
-import groupCheckBox from './groupCheckBox'
+import GroupCheckBox from '@/components/GroupCheckBox'
 export default {
   props: {
     isAdd: {
@@ -88,7 +87,7 @@ export default {
       //     obj: {}
       //   }
       // ],
-      accountList: getCookie('accountList'),
+      accountList: this.getCookie('accountList'),
       indeterminate: {
         limitIndeterminate: true,
         accountIndeterminate: true,
@@ -109,7 +108,7 @@ export default {
     }
   },
   components: {
-    groupCheckBox
+    GroupCheckBox
   },
   computed: {
     ...mapGetters({
@@ -184,7 +183,7 @@ export default {
           appAccountIds: this.checkAllGroup.accountCheckAllGroup
         }
       } else {
-        this.$Message.info('至少选择一个公众号和一个坐席权限')
+        this.$Message.error('至少选择一个公众号和一个坐席权限')
         return false
       }
     },

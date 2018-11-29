@@ -54,12 +54,22 @@
     >img
       cursor()
     .img_class
+      relative()
       bgColor()
+      text-align:center
       .icon
         absolute()
         top:0
         right:-30px
         fn(30px)
+        line-height:30px
         color()
         cursor()
+      img
+        absolute()
+        max-width:100%
+        max-height:100%
+        left: 50%
+        top: 50%
+        transform: translate(-50%, -50%)
 </style>

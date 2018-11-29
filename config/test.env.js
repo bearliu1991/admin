@@ -4,5 +4,5 @@ const devEnv = require('./dev.env')
 
 module.exports = merge(devEnv, {
   NODE_ENV: '"testing"',
-  API_ROOT: '"http://192.168.0.244:8091"'
+  MOBILE_BASE_URL: '"http://xdstest.xingke100.com"'
 })

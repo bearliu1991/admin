@@ -101,10 +101,10 @@ export default {
             this.showUpload = true
           } else {
             this.showUpload = false
-            this.$Message.warning(data.message)
+            this.$Message.error(data.message)
           }
         } else {
-          this.$Message.warning(data.message)
+          this.$Message.error(data.message)
         }
       })
     },
@@ -123,7 +123,7 @@ export default {
           url += '&' + item[0] + '=' + item[1]
         }
       })
-      url += '&userId=' + this.getToken().userId + '&scanType=3'
+      url += '&userId=' + this.getToken().userId
       this.value = encodeURI(url)
     }
   },

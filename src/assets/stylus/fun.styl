@@ -90,10 +90,6 @@ gradientIE(type, startColor, endColor)
     filter unquote('progid:DXImageTransform.Microsoft.gradient(startcolorstr=' + startColor + ',endcolorstr=' + endColor + ',gradientType = ' + type +')')
 ellipsis()
   overflow:hidden
-  text-overflow:ellipsis
-  white-space:nowrap
-ellipsis()
-  overflow:hidden
   white-space:nowrap
   text-overflow:ellipsis
 commonBtn()
@@ -203,3 +199,22 @@ topRightTriangle(n, colors)
   border-left-color:transparent
 normal()
   font-weight:normal
+placeholder(n)
+  input::-webkit-input-placeholder { /* WebKit browsers */
+    color: n;
+  }
+  input:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+    color: n;
+  }
+  input::-moz-placeholder { /* Mozilla Firefox 19+ */
+    color: n;
+  }
+  input:-ms-input-placeholder { /* Internet Explorer 10+ */
+    color: n;
+  }
+css3Middle()
+  position fixed
+  z-index 100
+  left 50%
+  top 50%
+  transform translate(-50%, -50%)

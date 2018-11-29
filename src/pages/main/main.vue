@@ -2,7 +2,7 @@
   <div id="main">
     <common-header></common-header>
     <div class="main-scroll-bar">
-      <scroll-bar>
+      <scroll-bar :isTop="true" v-if="$route.name !== 'home'">
         <div class="main-wrapper-noscroll">
           <div class="main-content">
             <router-view></router-view>
@@ -10,6 +10,14 @@
         </div>
         <common-footer></common-footer>
       </scroll-bar>
+      <div v-else>
+        <div class="main-wrapper-noscroll">
+          <div class="main-content">
+            <router-view></router-view>
+          </div>
+        </div>
+        <common-footer></common-footer>
+      </div>
     </div>
   </div>
 </template>

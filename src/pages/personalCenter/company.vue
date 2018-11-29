@@ -1,7 +1,7 @@
 <template>
   <div id="company">
     <div class="title">我的企业</div>
-    <data-loading :data-satau='loadingStatu'>
+    <data-loading :data-satau='loadingImg' @reload="reload">
       <div class="no-table-list" v-show="corpData.length<=0">
         <div class="no-img"><img src="@/assets/images/nocorp.png" alt=""></div>
         <div class="no-text">你当前尚未加入企业</div>
@@ -19,7 +19,7 @@
             <th class="th-item">套餐状态</th>
             <th class="th-item">操作</th>
           </tr>
-          <tr class="loading-item" v-show="loadingImg">
+          <tr class="loading-item" v-show="loadingStatu === 2">
             <th colspan="7" class="loading">
               <Spin fix>
                 <Icon type="load-c" size=40 class="spin-icon-load"></Icon>
@@ -29,14 +29,14 @@
           </tr>
           <tr class="tr-item tr-td-item" v-for="(item ,index) in corpData" :key="index">
             <td class="td-item">
-              <div class="default-name" v-show="idx!=index">
+              <div class="default-name" v-if="idx!=index">
                 <span class="span company-name" :title="item.corpName">{{item.corpName}}</span>
                 <span class="span dingWidth">
                   <Icon class="edit-icon handle" title="修改" size="18" @click="nameEdit(index,item.corpName)" type="edit"></Icon>
                 </span>
               </div>
-              <div class="edit" v-show="idx==index">
-                <Input v-model="companyName" placeholder="请输入企业名称" style="width: 315px"></Input>
+              <div class="edit" v-if="idx===index">
+                <Input ref="inputFocusCrop" v-model="companyName" placeholder="请输入企业名称" style="width: 315px"></Input>
                 <span class="span handle" @click="saveEdit(item.applyId)">保存</span>
                 <span class="span handle" @click="cancelEdit">取消</span>
               </div>
@@ -89,10 +89,10 @@
       <img src="@/assets/images/footer-banner.png" alt="">
     </div>
     
-    <common-modal ref="addCompany" header="创建提示" :content="addCompanyContent" :showFooter="false"></common-modal>
+    <common-modal ref="addCompany" header="创建提示" :content="addCompanyContent" confrim="知道了" :cancelBtn="false"></common-modal>
     <common-modal ref="stopCorp" header="停用企业" content="您正在停用该企业，停用后您将无法继续为该企业下的公众号提供管理和服务，当您启用后方可使用" @ok="stopCorp"></common-modal>
     <common-modal ref="delCorp" header="删除企业" content="您正在删除该企业，确定删除么？" @ok="delCorp"></common-modal>
-    <common-modal ref="exitCorp" header="解绑企业" content="解绑后您将无法继续位该公司下的公众号提供管理和服务。" @ok="asyncOK"></common-modal>
+    <common-modal ref="exitCorp" header="退出企业" content="退出企业后您将无法继续为该公司下的公众号提供管理和服务。" @ok="asyncOK"></common-modal>
     <common-modal ref="startCorp" header="启用企业" content="您正在启用该企业，启用后您将继续为该公司下的公众号提供管理和服务。" @ok="startCorp"></common-modal>
     <common-modal ref="expire" header="已过期提示" confrim="立即升级" content="该企业套餐已过期，请升级后继续使用。如有问题，请咨询销大师客
 服人员，谢谢。" @ok="upgradeExpire" ></common-modal>
@@ -104,23 +104,24 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
 import {
   getUserCorpAuthMulti,
   updateCorpName,
   savelogoutCompany,
   checkCreateCorpApply,
-  updateCorpStatusByCorpId
+  updateCorpStatusByCorpId,
+  saveloginCompany
 } from '@/api/query'
-import { mapActions } from 'vuex'
-import { setCookie } from '@/utils/cookies'
+import Const from './const'
 export default {
   data() {
     return {
       // 点击修改企业名称的索引值
       idx: -1,
+      const: Const,
       companyName: '',
       loadingStatu: 1,
-      loadingCount: 0,
       modal6: false,
       loading: true,
       corpData: [],
@@ -128,7 +129,7 @@ export default {
       applyId: '',
       offset: 0,
       showModel: false,
-      loadingImg: false,
+      loadingImg: 1,
       isStart: 1,
       saveStepsData: {
         current: 0,
@@ -148,18 +149,17 @@ export default {
       //   // ASC
       //   order: 'ASC'
       // }
-      if (this.loadingCount === 0) {
-        this.loadingImg = true
-        this.loadingStatu = 1
-      }
-      this.loadingCount++
+      // this.loadingStatu = 1
       getUserCorpAuthMulti().then(data => {
         if (data.code === 1) {
-          this.loadingStatu = 2
-          this.loadingImg = false
+          // this.loadingStatu = 2
+          this.loadingImg = 2
           this.corpData = data.data
         }
       })
+    },
+    reload() {
+      this.getUserCorpAuthMulti()
     },
     isDisable(corpId, packStatus, item) {
       this.getExistOrder({ corpId: corpId }).then(data => {
@@ -168,7 +168,7 @@ export default {
             this.$refs.forbidden.showModal()
           } else if (data.data.corpPackStatus === 'DISABLED') {
             if (data.data.isBuy) {
-              // setCookie('currentCorp', item)
+              // this.setCookie('currentCorp', item)
               let obj = {
                 corpId: corpId,
                 corpName: item.corpName
@@ -182,11 +182,11 @@ export default {
               corpId: corpId,
               corpName: item.corpName
             }
-            // setCookie('currentCorp', item)
+            // this.setCookie('currentCorp', item)
             this.setPayStatu(obj)
           }
         } else {
-          this.$Message.warning(data.message)
+          this.$Message.error(data.message)
         }
       })
     },
@@ -196,11 +196,20 @@ export default {
         switch (data.code) {
           case 1:
             if (data.data.isBuy) {
-              setCookie('orderId', data.data.orderId)
-              setCookie('corpId', data.data.corpId)
+              this.setCookie('orderId', data.data.orderId)
+              this.setCookie('corpId', data.data.corpId)
               this.$refs.addCompanyPay.showModal()
             } else {
-              setCookie('isCreatCompany', true)
+              this.removeCookie('saveStepsData')
+              this.removeCookie('orderPayPrice')
+              this.removeCookie('companyParams')
+              this.removeCookie('orderId')
+              this.removeCookie('status')
+              this.removeCookie('corpId')
+              this.removeCookie('isCreatCompany')
+              this.removeCookie('corpName')
+              this.removeCookie('nextOrderStep')
+              this.setCookie('isCreatCompany', true)
               this.$router.push({ name: 'createCompany' })
             }
             break
@@ -211,19 +220,19 @@ export default {
           case 3528:
             this.addCompanyContent = '您最多可创建10个企业。'
             this.$refs.addCompany.showModal()
-            break  
+            break
           default:
             break
         }
       })
     },
     changePage(page) {
-      this.loadingImg = true
       this.offset = (page - 1) * 10
       // this.getUserCorpAuthMulti()
     },
     updateCorpName(params) {
       updateCorpName(params).then(data => {
+        this.idx = -1
         switch (data.code) {
           case 1:
             this.$Message.success('修改成功')
@@ -238,7 +247,70 @@ export default {
           default:
             break
         }
+      }).catch(() => {
+        this.idx = -1
+        this.$Message.error('修改失败！服务器出现问题')
       })
+    },
+    // 进入公司信息
+    saveloginCompany(param, name) {
+      let obj = {
+        corpId: param
+      }
+      saveloginCompany(obj).then(data => {
+        if (data.code === 1) {
+          if (!data.data.menuTree) {
+            this.$Message.error('非常抱歉，您暂无权限，不能进入管理')
+            return
+          }
+          this.$router.push({ name: name })
+        } else {
+          this.$Message.error('进入管理失败')
+          this.removeCookie('currentCorp')
+        }
+      })
+    },
+    doneData(newArr, oldArr) {
+      if (newArr.length < 0) {
+        return
+      }
+      let arr = []
+      let obj = {}
+      newArr = newArr.sort(this.sortBy('menuOrder'))
+      for (let index = 0; index < newArr.length; index++) {
+        if (newArr[index].subMenu.length > 0) {
+          newArr[index].subMenu = newArr[index].subMenu.sort(
+            this.sortBy('menuOrder')
+          )
+        }
+      }
+      for (let i = 0; i < newArr.length; i++) {
+        for (let j = 0; j < oldArr.length; j++) {
+          if (newArr[i].menuName === oldArr[j].menuName) {
+            if (newArr[i].subMenu.length > 0) {
+              newArr[i].isSecond = true
+            }
+            let assignObj = Object.assign({}, oldArr[j], newArr[i])
+            arr.push(assignObj)
+            if (newArr[i].subMenu.length > 0) {
+              obj[newArr[i].menuUrl] = {}
+              obj[newArr[i].menuUrl].name = newArr[i].menuName
+              obj[newArr[i].menuUrl].list = newArr[i].subMenu
+            }
+          }
+        }
+      }
+      let rules = {
+        fontClass: 'fontClass',
+        menuName: 'menuName',
+        isSecond: 'isSecond',
+        menuUrl: 'menuUrl'
+      }
+      let mainMenu = this.transformData(arr, rules)
+      return {
+        allSecondObj: obj,
+        mainMenuList: mainMenu
+      }
     },
     savelogoutCompany(params) {
       savelogoutCompany(params).then(data => {
@@ -250,25 +322,25 @@ export default {
     },
     setCurrentCokie(val) {
       this.saveStepsData.current = val
-      setCookie('saveStepsData', this.saveStepsData)
+      this.setCookie('saveStepsData', this.saveStepsData)
     },
     checkOrder(applyId, item) {
       let params = {
         corpId: applyId,
         corpName: item.corpName
       }
-      this.getExistOrder({corpId: applyId}).then(data => {
+      this.getExistOrder({ corpId: applyId }).then(data => {
         if (data.code === 1) {
           this.setCorpPackage({})
-          // setCookie('currentCorp', item)
+          // this.setCookie('currentCorp', item)
           if (data.data.isBuy && data.data.orderStatus === 0) {
             this.goCreatCorp(applyId, data.data.orderId)
           } else {
-            setCookie('isCreatCompany', true)
+            this.setCookie('isCreatCompany', true)
             this.setPayStatu(params)
           }
         } else {
-          this.$Message.warning(data.message)
+          this.$Message.error(data.message)
         }
       })
     },
@@ -277,37 +349,49 @@ export default {
     },
     goCreatCorp(applyId, orderId) {
       if (applyId) {
-        setCookie('orderId', orderId)
-        setCookie('corpId', applyId)
+        this.setCookie('orderId', orderId)
+        this.setCookie('corpId', applyId)
       }
-      setCookie('isCreatCompany', true)
+      this.setCookie('isCreatCompany', true)
       this.saveStepsData.name = 'createCompany'
       this.setCurrentCokie(2)
       this.$router.push({ name: 'createCompany' })
     },
     updateCorpStatusByCorpId(params) {
-      updateCorpStatusByCorpId(params).then(data => {
-        if (data.code === 1) {
-          if (this.isStart === 1) {
-            this.$Message.success('停用成功')
-          } else if (this.isStart === 2) {
-            this.$Message.success('启用成功')
+      updateCorpStatusByCorpId(params)
+        .then(data => {
+          if (data.code === 1) {
+            if (this.isStart === 1) {
+              this.$Message.success('停用成功')
+            } else if (this.isStart === 2) {
+              this.$Message.success('启用成功')
+            } else {
+              this.$Message.success('删除成功')
+            }
+            this.getUserCorpAuthMulti()
           } else {
-            this.$Message.success('删除成功')
+            this.$Message.error(data.message || '操作失败')
           }
-          this.getUserCorpAuthMulti()
-        }
-      })
+        })
+        .catch(() => {
+          this.$Message.error('操作失败')
+        })
     },
     nameEdit(idx, name) {
       this.idx = idx
       this.companyName = name
+      this.$nextTick(() => {
+        this.$refs.inputFocusCrop[idx].focus()
+      })
     },
     saveEdit(applyId) {
-      this.idx = -1
+      if (this.companyName.trim().length > 100) {
+        this.$Message.error('修改失败！公司名称长度不能大于100')
+        return
+      }
       let params = {
         applyId,
-        corpName: this.companyName
+        corpName: this.companyName.trim()
       }
       this.updateCorpName(params)
     },
@@ -339,8 +423,8 @@ export default {
           applyId: item.applyId,
           corpName: item.corpName
         }
-        setCookie('currentCorp', currentCorp)
-        this.$router.push({ name: 'survey' })
+        this.setCookie('currentCorp', currentCorp)
+        this.saveloginCompany(item.applyId, 'survey')
       }
     },
     cancelEdit() {
@@ -385,7 +469,8 @@ export default {
     },
     ...mapActions({
       setPayStatu: 'pay/setPayStatu',
-      setCorpPackage: 'survey/setCorpPackage'
+      setCorpPackage: 'survey/setCorpPackage',
+      setMenuList: 'nav/setMenuList'
     })
   }
 }

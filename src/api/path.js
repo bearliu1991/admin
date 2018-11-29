@@ -1,7 +1,10 @@
-const uploadService = process.env.API_ROOT
-const url = process.env.API_ROOT + '/api/stuff'
-const urlOrder = process.env.API_ROOT + '/api/order'
+import flyPath from './flyPath'
+const uploadService = '/api'
+const url = '/api/stuff'
+const urlOrder = '/api/order'
+const ENV_URL = process.env.MOBILE_BASE_URL
 export default {
+  ENV_URL: ENV_URL,
   uploadfile: uploadService + "/uploadfile",
   downloadfile: uploadService + "/downloadfile",
 
@@ -42,5 +45,7 @@ export default {
   recordsList: urlOrder + "/recordsList", // 订单列表
   orderStatus: urlOrder + "/orderStatus", // 订单状态列表
   orderDetail: urlOrder + "/orderDetail", // 订单详情
-  usingMenu: urlOrder + "/usingMenu" // 原订单
+  usingMenu: urlOrder + "/usingMenu", // 原订单
+
+  ...flyPath
 }

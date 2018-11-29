@@ -206,14 +206,17 @@
           color #0c0c0d
           no-wrap()
         .date
+          clear() 
           div
-            display inline-block
+            float left
             padding 6px 12px
             background-color #fff1f1
             color #f56c6c
             border-radius 12px
             margin-top 20px
             &:nth-of-type(1)
+              max-width 122px
+              no-wrap()
               margin-right: 10px
         .tips-info
           font-size 12px

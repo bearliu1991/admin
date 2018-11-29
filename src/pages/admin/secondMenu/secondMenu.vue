@@ -1,27 +1,35 @@
 <template>
   <div id="tencent">
-    <div class="second-nav" :class="{secondcollapsed:!collapsed}">
+    <div class="second-nav" :class="{secondcollapsed:!collapsed}" v-if="secondMenu">
       <div class="nav-title">
         {{secondMenu.name}}
       </div>
       <div class="second-nav-link" v-for="(item, index) in secondMenu.list" :key="index">
-        <div class="second-nav-item" @click="goToRouter(item.name)" :class="{active: routerInfo.name.indexOf(item.name || 1)>=0}">{{item.text}}</div>
+        <div class="second-nav-item" @click="goToRouter(item.menuUrl)" :class="{active: routerInfo.name.indexOf(item.menuUrl || 1)>=0}">{{item.menuName}}</div>
       </div>
     </div>
     <!-- <div> -->
-    
-    <div class="tencent-wrapper" :class="{tencentcollapsed:!collapsed}">
-      <scroll-bar>
+      
+    <div v-if="$route.name === 'tencentManage' || $route.path.indexOf('setting') >= 0" class="tencent-wrapper" :class="{tencentcollapsed:!collapsed}">
+      <scroll-bar :isTop="true">
         <div class="tencent-wrapper-scroller">
           <router-view></router-view>
         </div>
       </scroll-bar>
     </div>
-    
+    <div v-else class="tencent-wrapper1" :class="{tencentcollapsed:!collapsed}">
+      <scroll-bar :isTop="true">
+        <div class="tencent-wrapper-scroller">
+          <router-view></router-view>
+        </div>
+      </scroll-bar>
+    </div>
+
     <!-- </div> -->
   </div>
 </template>
 <script>
+// import PublicNo from '@/components/currPublicNo'
 import {mapGetters} from 'vuex'
 export default {
   name: 'tencent',
@@ -32,7 +40,8 @@ export default {
       secondMenu: 'nav/getSecondMenu'
     })
   },
-  created() {},
+  created() {
+  },
   methods: {
     goToRouter(name) {
       if (this.routerInfo.name.indexOf(name) < 0) {
@@ -93,15 +102,21 @@ export default {
             background-color #409eff
   #tencent
     height 100%
-    .tencent-wrapper
+    .tencent-wrapper, .tencent-wrapper1
       height 100%
       margin-left 130px
-      transition all 0.2s
-      background-color #fff
+      transition margin-left 0.2s
+      border-radius 3px
       .tencent-wrapper-scroller
         padding:20px
         padding-bottom 10px
       &.tencentcollapsed
         margin-left 0
+    .tencent-wrapper
+      background-color #ffffff
+    .tencent-wrapper1
+      .tencent-wrapper-scroller
+        padding 20px 0px
+        padding-bottom 0
 </style>
 

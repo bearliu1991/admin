@@ -3,7 +3,7 @@
     <div class="wrapper">
         <div class="left">
             <div class="title">
-                <span class="icon">&#xe748;</span>组织架构
+                <span class="icon">&#xe622;</span>组织架构
             </div>
             <div class="tree_wrap">
                 <scroll-bar>
@@ -57,7 +57,7 @@ export default {
     },
     computed: {
         ...mapGetters({
-            corInfo: 'survey/getCorpPackage'
+            corInfo: 'survey/getSaveloginCompany'
         })
     },
     created() {
@@ -91,7 +91,7 @@ export default {
         })
         this.getTreeData()
     },
-    methods: {
+    methods: { 
         transforData(data) {
             let rules = {
                 'key': 'id',
@@ -118,7 +118,9 @@ export default {
                if (res.code === 1) {
                 let rules = {parentLabel: 'label', _parentId: 'key', total: 'eeNum'}
                 let obj = this._computedTreeTotal(res.data, rules, 'children', 'total')
+                console.log(obj)
                 let finalRes = this.transforData(obj)
+                console.log(finalRes)
                 sortTreeNode(finalRes)
                 this.$set(this, 'datas', finalRes)
                 this.dataSatau = 2
@@ -331,8 +333,9 @@ export default {
         .left
             fl()
             inline()
-            width 20%
+            width 14%
             height 100%
+            min-width:200px
             bgColor()
             .title
                 vertical(56px)
@@ -345,7 +348,7 @@ export default {
         .right
             fr()
             height 100%
-            width: 79%
+            width: 85%
             ml(1%)
             bgColor()
             padding 20px 10px 10px 10px

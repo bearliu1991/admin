@@ -6,7 +6,7 @@
           <td v-for="(item, index) in columns" :key="index">{{item}}</td>
         </tr>
       </thead>
-      <tbody>
+      <tbody v-if="datas.length">
         <tr v-for="(item, index) in datas" :key="index">
           <td v-for="(obj, key, idx) in item" :key="idx">
             <div class="firstObj" v-if="key === 'firstObj'">
@@ -19,35 +19,36 @@
             </div>
             <div v-if="key === 'timeLimit'">{{obj}}</div>
             <div class="priceObj" v-if="key === 'priceObj'">
-              <p>{{obj.price}}</p>
-              <span>{{obj.originPrice}}</span>
+              <p>{{toFix(obj.originPrice / 100)}}</p>
+              <span>{{toFix(obj.price / 100)}}</span>
             </div>
             <div v-if="key === 'quantity'">{{obj}}</div>
             <div class="userObj" v-if="key === 'userObj'">
-              <img :src="obj.picUrl" />
+              <img v-if="obj.orderChannel !== 2" :src="obj.picUrl"/>
               <div class="infos fl">
                 <p>{{obj.nickName}}</p>
-                <p>{{obj.mobile}}</p>
+                <p v-if="obj.orderChannel !== 2">{{obj.mobile}}</p>
               </div>
             </div>
             <div class="payObj" v-if="key === 'payObj'">
-              <p>¥ {{(obj.moneyPaid / 100).toFixed(2)}}</p>
-              <p>{{transferPay(obj.payWay)}}</p>
+              <p>{{toFix(obj.moneyPaid / 100)}}</p>
+              <!-- <p>{{transferPay(obj.payWay)}}</p> -->
             </div>
             <div class="payStatus" v-if="key === 'status'">
               <p :class="transferStatus(obj, 1)">{{transferStatus(obj)}}</p>
-              <span class="cursor" @click="handle('orderShow', {orderId: item.firstObj.orderId, status: item.status})">订单详情</span>
+              <span class="cursor" @click="handle('orderShow', {orderId: item.firstObj.orderId, status: item.status, corpId: item.firstObj.corpId})">订单详情</span>
             </div>
           </td>
           <td class="process">
             <div class="process_wrap">
-              <p v-if="datas[index].status - 0 === 0" class="pay_now" @click.stop="handle('orderPayNow', {orderId: item.firstObj.orderId, status: item.status})">立即支付</p>
-              <p v-if="datas[index].status - 0 === 0 || (datas[index].status - 0 === 4)" @click="handle('cancelOrder', {orderId: item.firstObj.orderId, status: item.status})">取消订单</p>
+              <p v-if="datas[index].status - 0 === 0" class="pay_now" @click.stop="handle('orderPayNow', {orderId: item.firstObj.orderId, status: item.status, corpId: item.firstObj.corpId})">立即支付</p>
+              <p v-if="datas[index].status - 0 === 0 || (datas[index].status - 0 === 4)" @click="handle('cancelOrder', {orderId: item.firstObj.orderId, status: item.status, corpId: item.firstObj.corpId})">取消订单</p>
             </div>
           </td>
         </tr>
       </tbody>
     </table>
+    <div v-if="!datas.length" class="no_datas">暂无数据</div>
   </div>
 </template>
 <script>
@@ -75,7 +76,7 @@
     components: {},
     methods: {
       transferPay(val) {
-        return val - 0 === 1 ? '微信支付' : (val === 2 ? '支付宝支付' : '银行汇款')
+        return val === 1 ? '微信公众号支付' : val === 2 ? '支付宝支付' : val === 3 ? '银行汇款' : '微信H5支付'
       },
       transferStatus(val, bool) {
         switch (val - 0) {
@@ -99,7 +100,7 @@
             return bool ? 'success' : '审核成功'
           // 评审失败
           case 6:
-            return bool ? 'error' : '订单异常'
+            return bool ? 'error' : '订单处理中'
           // 评审失败
           case 9:
             return bool ? '' : '删除'
@@ -108,7 +109,7 @@
         }
       },
       getWidth() {
-        this.width = document.getElementById('table').getBoundingClientRect().width
+        this.width = document.getElementById('table') && document.getElementById('table').getBoundingClientRect().width
       },
       handle(key, param) {
         this._BUS.$emit('handleOrder', key, param)
@@ -122,6 +123,9 @@
       clear()
       display:block
       // mt(85px)
+      .no_datas
+        padt(15px)
+        center()
       table
         tr 
           td
@@ -174,6 +178,8 @@
           color(#3fb838)
         .error
           color(err_color)
+        span:hover
+          color(text_color)
       p
         padb(5px)
       span

@@ -15,8 +15,9 @@
       <tbody>
         <tr class="tr-td">
           <td class="td" v-for="(obj, key, idx) in buyInfo" :key="idx">
-            <span v-if="key==='price' || key==='discountsPrice' ||key==='countPrice' ||key==='goodsPrice' ||key==='orderPayprice' ||key==='minusPrice'">￥</span>
-            <span>{{obj}}</span>
+            <span v-if="key ==='price' || key ==='discountsPrice' ||key ==='countPrice' ||key ==='goodsDiscountsPrice' ||key ==='orderPayprice' ||key ==='minusPrice'">￥</span>
+            <span v-if="key === 'countPrice' || key === 'minusPrice'">{{insertPoint(obj)}}</span>
+            <span v-else>{{obj}}</span>
           </td>
         </tr>
       </tbody>
@@ -43,9 +44,7 @@ export default {
       columns1: Const.columns1
     }
   },
-  mounted() {
-
-  },
+  mounted() {},
   methods: {}
 }
 </script>

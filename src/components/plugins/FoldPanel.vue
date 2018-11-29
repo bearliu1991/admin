@@ -28,7 +28,9 @@ export default {
   methods: {
     packUpToogle() {
       this.foldStatu = !this.foldStatu
-      this.$root.Bus.$emit('calcScrollHeight')
+      this.$nextTick(() => {
+        this.$root.Bus.$emit('calcScrollHeight')
+      })
     }
   }
 }

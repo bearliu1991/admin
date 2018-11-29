@@ -33,13 +33,13 @@ export default {
   created() {
     let chooseObj = localStorage && JSON.parse(localStorage.getItem(this.installName('stuff')))
     if (chooseObj) {
-      let arr = this.deepCopy(this.columns)
+      let arr = this.columns.slice()
       arr.forEach((item, index) => {
         this.$set(item, 'show', chooseObj[index])
       })
       this.$set(this, 'Columns', arr)
     } else {
-      this.Columns = this.deepCopy(this.columns)
+      this.Columns = this.columns.slice()
     }
     this.changeTable()
   },

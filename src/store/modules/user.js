@@ -1,9 +1,4 @@
-import {
-  getToken
-} from '@/utils/cookies'
-
 const state = {
-  token: getToken(),
   // session失效
   message: 1,
   test: 1,
@@ -12,7 +7,6 @@ const state = {
   overHidden: 1,
 }
 const getters = {
-  getToken: state => state.token,
   getMessage: state => state.message,
   getTest: state => state.test,
   getStep: state => state.step,
@@ -20,9 +14,6 @@ const getters = {
   getOverStatu: state => state.overHidden
 }
 const mutations = {
-  SET_TOKEN(state, token) {
-    state.token = token
-  },
   SET_STEP(state, step) {
     state.step = step
   },
@@ -31,7 +22,6 @@ const mutations = {
   },
   STE_TEST(state, test) {
     state.test++
-    console.log(state.test)
   },
   SET_ANCHOR(state, anchor) {
     state.anchor = anchor

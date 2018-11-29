@@ -118,7 +118,6 @@ import TmpQrcode from '@/components/TmpQrcode'
 import {
   logout
 } from '@/api/query'
-import { removeToken, getToken, removeCookie } from '@/utils/cookies'
 import {mapGetters} from 'vuex'
 export default {
   data() {
@@ -127,7 +126,7 @@ export default {
       appAccountId: '',
       status: 0,
       loadingImg: false,
-      userInfo: getToken() || null,
+      userInfo: this.getToken() || null,
     }
   },
   computed: {
@@ -137,7 +136,7 @@ export default {
   },
   watch: {
     step() {
-      this.userInfo = getToken() || null
+      this.userInfo = this.getToken() || null
     }
   },
   created() {
@@ -148,10 +147,10 @@ export default {
     logout() {
       logout().then(data => {
         if (data.code === 1) {
-          removeToken()
-          removeCookie('accountList')
-          removeCookie('currentCorp')
-          removeCookie('preAuthCode')
+          this.removeToken()
+          this.removeCookie('accountList')
+          this.removeCookie('currentCorp')
+          this.removeCookie('preAuthCode')
           this.$router.push({ name: 'login' })
         }
       })

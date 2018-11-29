@@ -145,7 +145,7 @@ export default {
                     }
                 })
             } else {
-                this.$Message.warning('此部门无法上移!')
+                this.$Message.error('此部门无法上移!')
             }
         },
         movedownTreeNode(val) {
@@ -166,7 +166,7 @@ export default {
                     }
                 })
             } else {
-                this.$Message.warning('此部门无法下移!')
+                this.$Message.error('此部门无法下移!')
             }
         }
     }

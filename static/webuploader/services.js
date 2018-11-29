@@ -91,7 +91,7 @@ var mi = {};
             })
         }
     };
-     
-    mi.uploadService = new jsonProxy("http://localhost:8091/webuploader/upload/");
+
+    mi.uploadService = new jsonProxy("/webuploader/upload/");
     //api end
-})(jQuery); 
+})(jQuery);

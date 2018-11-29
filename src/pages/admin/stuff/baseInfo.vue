@@ -174,6 +174,9 @@ export default {
       this._BUS.$emit('handle', key, this.curUser.eeId)
     },
     transfor(item) {
+      if (item.name === "nickname") {
+        return item.val
+      }
       if (item.name === "sex") {
         return item.val - 0 === 1 ? "男" : '女'
       }
@@ -308,9 +311,13 @@ export default {
       .titles
         fl()
         width 85px
-      // .sec_class
-      //   fl()
-      //   // mt(12px)
+      .ivu-col:last-child
+        fl()
+        width: calc(100% - 90px)
+        .sec_class
+          inline()
+          width:100%
+          ellipsis()
       .ivu-radio-group
         mt(9px)
       .switch_wrap

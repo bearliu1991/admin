@@ -35,6 +35,13 @@
             height 100%
             .span
               display inline-block
+            .nowrap
+              float left
+              max-width: 220px
+              no-wrap()
+              margin-right: 5px
+            .nowrap-icon
+              float left  
             .handle
               margin-left: 5px
               color: #409fff
@@ -48,6 +55,9 @@
                 &.default-logo
                   width: 60px
                   height 60px
+                  .initImg
+                    width: 100%
+                    height 100%
                 &.default-weixin
                   height 31px
                   width: 31px  
@@ -82,4 +92,5 @@
                 left 0
                 line-height: 1
                 color: #f56c6c
+                font-size: 12px
                  

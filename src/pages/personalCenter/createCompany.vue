@@ -8,7 +8,7 @@
       <third-step @companyParams="companyParams" type="go-on"></third-step>
     </div>
     <div class="order-second-steps" v-if="reloadComponent" v-show="currentSteps==1">
-      <orderPay type="createCompany" @lastStep="lastStep" @submitOrder="submitOrder"></orderPay>
+      <orderPay type="createCompany" :creatCorpName="corpData.corpName" @lastStep="lastStep" @submitOrder="submitOrder"></orderPay>
     </div>
     <div class="order-third-steps" v-if="currentSteps==2">
       <payment @restartOrder="restartOrder" @nextOrderStep="nextOrderStep"></payment>
@@ -25,18 +25,17 @@ import orderPay from '@/pages/admin/pay/OrderPay'
 import payment from '@/pages/admin/pay/payment'
 import thirdStep from '@/pages/register/thirdStep'
 import complatePay from '@/pages/admin/pay/complatePay'
-import {getCookie, setCookie} from '@/utils/cookies'
 export default {
   name: 'creatCompany',
   data() {
     return {
       corpData: {},
-      currentSteps: (getCookie('saveStepsData') && getCookie('saveStepsData').current) || 0,
+      currentSteps: (this.getCookie('saveStepsData') && this.getCookie('saveStepsData').current) || 0,
       saveStepsData: {
         current: 0,
         name: this.$route.name
       },
-      complateStatus: getCookie('nextOrderStep') || 1,
+      complateStatus: this.getCookie('nextOrderStep') || 1,
       reloadComponent: true
     }
   },
@@ -51,7 +50,7 @@ export default {
   methods: {
     setCurrentCokie() {
       this.saveStepsData.current = this.currentSteps
-      setCookie('saveStepsData', this.saveStepsData)
+      this.setCookie('saveStepsData', this.saveStepsData)
     },
     companyParams(params) {
       this.corpData = params
@@ -68,7 +67,7 @@ export default {
     },
     nextOrderStep(val) {
       this.complateStatus = val
-      setCookie('nextOrderStep', val)
+      this.setCookie('nextOrderStep', val)
       this.currentSteps = 3
       this.setCurrentCokie()
     },

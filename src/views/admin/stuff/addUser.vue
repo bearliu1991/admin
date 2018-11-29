@@ -10,7 +10,7 @@
     <div class="component">
         <data-loading :dataSatau="dataSatau">
             <AddInput v-show="curId === 0" ref="addInput"></AddInput>
-            <RightSet :systems="systems" :isEdit="true" v-show="curId === 1" ref="rightSet"></RightSet>
+            <GroupCheckBox :systems="systems" :isEdit="true" v-show="curId === 1" ref="rightSet"></GroupCheckBox>
             <WeCode v-show="curId === 2" ref="weCode" 
             :uploadurl="uploadurl"
             :downloadurl="downloadurl"
@@ -34,7 +34,7 @@
 import {mapGetters} from 'vuex'
 import AddInput from './addInput'
 import WeCode from './weCode'
-import RightSet from './rightSet'
+import GroupCheckBox from '@/components/GroupCheckBox'
 import Const from './const'
 export default {
   data() {
@@ -58,7 +58,7 @@ export default {
         curApart: 'stuff/getCurrApart'
     }),
   },
-  components: { AddInput, WeCode, RightSet },
+  components: { AddInput, WeCode, GroupCheckBox },
   methods: {
     init() {
         this.systems = this.deepCopy(Const.systems)

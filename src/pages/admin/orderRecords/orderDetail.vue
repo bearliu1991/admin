@@ -13,20 +13,20 @@
         <ShowTable :datas="originTables" :allMiddle="true" :columns="Const.originOrderColumn"></ShowTable>
       </div>
       <div v-if="details.status === 0 && originOrder.goodsName" class="mt25">
-        <CalcMoney :total='details.orderPayprice - 0' :deduction="originOrder.minusPrice - 0" :status="details.status"></CalcMoney>
+        <CalcMoney :total='toFix(details.goodsNumPrice / 100)' :orderPayprice="details.orderPayprice" :deduction="toFix(originOrder.minusPrice / 100)" :status="details.status"></CalcMoney>
       </div>
-      <div class="pay_list" v-if="details.payDetailList && (details.payDetailList.length > 1)">
+      <div class="pay_list" v-if="details.payDetailList && (details.payDetailList.length > 1) && (this.details.status !== 0)">
         <PayList :details="details"></PayList>
       </div>
       <div v-if="showRealPay()" class="mt25 fr realPay">
-        <RealPay :status="details.status" :realPay="details.orderPayprice / 100"></RealPay>
+        <RealPay :status="details.status" :realPay="toFix(details.orderPayprice / 100)"></RealPay>
       </div>
       <PayImg v-if="showPayImg()" class="mt25" :details="details"></PayImg>
       <div class="bottom_p">
-        <div class="checkInfo" v-if="details.status === 4 && details.authMisc">
+        <div class="checkInfo" v-if="details.status === 4 && details.payDetailList[0].authMisc">
           <h3>审核备注</h3>
-          <span>{{details.authTime}}</span>
-          <p>{{details.authMisc}}</p>
+          <span>{{details.payDetailList && details.payDetailList[0].authTime}}</span>
+          <p>{{details.payDetailList && details.payDetailList[0].authMisc}}</p>
         </div>
         <div class="order_btns mt25">
           <Button @click="handle('orderGoback')">返回</Button>
@@ -39,7 +39,6 @@
   </div>
 </template>
 <script>
-  import { mapGetters } from 'vuex'
   import OrderTitle from './orderTitle'
   import ShowTable from './showTable'
   import CalcMoney from './calcMoney'
@@ -69,11 +68,6 @@
     mounted() {
       this.$root.Bus.$emit('calcScrollHeight')
     },
-    computed: {
-      ...mapGetters({
-        corpInfo: 'survey/getCorpPackage'
-      })
-    },
     components: { OrderTitle, ShowTable, CalcMoney, PayImg, RealPay, PayList },
     methods: {
       isCancel() {
@@ -86,7 +80,7 @@
         this.dataSatau = 1
         let param = {
           orderId: this.orderInfo.orderId,
-          corpId: this.corpInfo.corpId
+          corpId: this.orderInfo.corpId
         }
         this.ajaxOrderDetail(param).then((res) => {
           this.dataSatau = 2
@@ -94,12 +88,15 @@
             this.details = res.data
             this.details.status === 0 && this.getOriginOrder()
             this.installNowOrder()
+          } else {
+            this.$Message.error(res.message)
+            this.handle('orderGoback')
           }
         })
       },
       // 获取使用中的订单
       getOriginOrder() {
-        this.ajaxUsingMenu({corpId: this.corpInfo.corpId}).then((res) => {
+        this.ajaxUsingMenu({corpId: this.orderInfo.corpId}).then((res) => {
           if (res.code === 1) {
             if (res.data) {
               this.originOrder = res.data
@@ -108,16 +105,19 @@
           }
         })
       },
+      timeHandle(item) {
+        return (item.timeUnitNum + item.timeUnit) || '1年'
+      },
       installNowOrder() {
         let priceObj = '<div class="priceObj">' +
-            '<p>¥' + this.details.goodsPrice / 100 + '</p>' +
-            '<span>¥' + this.details.goodsDiscountsPrice / 100 + '</span>' +
+            '<p>' + this.toFix(this.details.goodsDiscountsPrice / 100) + '</p>' +
+            '<span>' + this.toFix(this.details.goodsPrice / 100) + '</span>' +
           '</div>'
         let userObj = '<div class="userObj">' +
-            '<img src="' + this.details.picUrl + '" />' +
+            (this.details.picUrl ? '<img src="' + this.details.picUrl + '" />' : '') +
             '<div class="infos">' +
               '<p>' + this.details.orderNickname + '</p>' +
-              '<p>' + this.details.orderMobile + '</p>' +
+              (this.details.orderMobile ? '<p>' + this.details.orderMobile + '</p>' : '') +
             '</div>' +
           '</div>'
         this.tableDatas = [
@@ -125,26 +125,26 @@
           priceObj,
           '<span>' + this.details.goodsNum + '</span>',
           userObj,
-          '<span>' + this.details.validDay + '</span>',
-          '<span>¥' + this.details.orderPayprice / 100 + '</span>'
+          '<span>' + this.timeHandle(this.details) + '</span>',
+          '<span>' + this.toFix(this.details.goodsNumPrice / 100) + '</span>'
         ]
       },
       installOriginOrder() {
         this.originTables = [
           '<span>' + this.originOrder.goodsName + '</span>',
-          '<span>¥' + this.originOrder.goodsPrice / 100 + '</span>',
+          '<span>' + this.toFix(this.originOrder.goodsPrice / 100) + '</span>',
           '<span>' + this.originOrder.goodsNum + '</span>',
-          '<span>¥' + this.originOrder.orderPayprice / 100 + '</span>',
+          '<span>' + this.toFix(this.originOrder.orderPayprice / 100) + '</span>',
           '<span>' + this.originOrder.startTime + ' — ' + this.originOrder.endTime + '</span>',
           '<span>' + this.originOrder.leftDay + '天</span>',
-          '<span class="err_color">¥' + this.originOrder.minusPrice / 100 + '</span>',
+          '<span class="err_color">' + this.toFix(this.originOrder.minusPrice / 100) + '</span>',
         ]
       },
       showPayImg() {
-        return (this.details.status === 5 || (this.details.status === 3) || (this.details.status === 4)) && (this.details.payDetailList && this.details.payDetailList.length < 2)
+        return ((this.details.payDetailList && this.details.payDetailList.length && (this.details.payDetailList[0].payType === 3) && this.details.status === 1) || (this.details.status === 5) || (this.details.status === 3) || (this.details.status === 4)) && (this.details.payDetailList && this.details.payDetailList.length < 2)
       },
       showRealPay() {
-        return (((this.details.status === 0 && !this.originOrder.goodsName) || (this.details.status === 2) || (this.details.status === 6) || (this.details.status === 1 && this.details.payDetailList && (this.details.payDetailList[0].payType !== 3))) && (this.details.payDetailList && this.details.payDetailList.length < 2))
+        return (((this.details.status === 0 && !this.originOrder.goodsName) || (this.details.status === 2) || (this.details.status === 6) || (this.details.status === 1 && this.details.payDetailList[0] && (this.details.payDetailList[0].payType !== 3))) && (this.details.payDetailList && this.details.payDetailList.length < 2))
       },
       handle(key, param) {
         if (this.drawerDetail) {

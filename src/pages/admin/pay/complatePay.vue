@@ -2,7 +2,7 @@
   <div class="complate-pay">
     <div class="complate-wrapper">
       <div class="complate-icon"><Icon type="checkmark-circled"></Icon></div>
-      <div class="status1">
+      <div class="status1" v-show="complateStatus === 1">
         <p class="p">您已成功完成订购！</p>
         <div class="p2">支付金额：<span>¥ {{orderPayPrice}}</span></div>
         <div class="complate-btn">
@@ -36,6 +36,7 @@
 </template>
 <script>
 import { getCookie } from '@/utils/cookies'
+import {saveloginCompany} from '@/api/query'
 export default {
   name: 'complatePay',
   data() {
@@ -54,7 +55,8 @@ export default {
       if (getCookie('isCreatCompany') && this.complateStatus !== 1) {
         let params = {
           orderId: getCookie('orderId'),
-          corpId: getCookie('corpId')
+          corpId: getCookie('corpId'),
+          status: getCookie('status')
         }
         this.$root.Bus.$emit('openDrawerDetail', params)
       } else {
@@ -63,11 +65,29 @@ export default {
           corpName: getCookie('corpName')
         }
         this.setCookie('currentCorp', currentCorp)
-        this.$root.Bus.$emit('regainCompanyInfo', 'records')
+        if (this.$route.name === 'records') {
+          this.$root.Bus.$emit('hideFullPageDrawer', false)
+          location.reload()
+        } else if (this.$route.path.indexOf('main') >= 0) {
+          this.saveloginCompany('records')
+        } else {
+          this.$root.Bus.$emit('regainCompanyInfo', 'records')
+        }
       }
     },
     back() {
-      this.$router.push({name: 'company'})
+      this.$router.push({ name: 'company' })
+    },
+    // 进入公司信息
+    saveloginCompany(name) {
+      let obj = {
+        corpId: this.getCookie('currentCorp').applyId
+      }
+      saveloginCompany(obj).then(data => {
+        if (data.code === 1) {
+          this.$router.push({ name: name })
+        }
+      })
     },
     startUse() {
       let currentCorp = {
@@ -76,11 +96,14 @@ export default {
       }
       this.setCookie('currentCorp', currentCorp)
       this.$root.Bus.$emit('hideFullPageDrawer', false)
-      if (this.$route.name === 'survey') {
-        this.$root.Bus.$emit('regainCompanyInfo', false)
-      } else {
-        this.$root.Bus.$emit('regainCompanyInfo', 'survey')
+      if (this.$route.path.indexOf('main') >= 0) {
         this.$router.push({ name: 'survey' })
+      } else {
+        if (this.$route.name === 'survey') {
+          this.$root.Bus.$emit('regainCompanyInfo', false)
+        } else {
+          this.$root.Bus.$emit('regainCompanyInfo', 'survey')
+        }
       }
     }
   }
@@ -121,7 +144,7 @@ export default {
         .use
           margin-left 20px
         .back
-          margin-right 20px  
+          margin-right 20px
       .complate-status3-btn
         margin-top 40px
 </style>

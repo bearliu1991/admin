@@ -19,10 +19,6 @@ export default new Router({
       component: () => import("@/pages/authorization/authorization")
     },
     {
-      path: "/admin",
-      redirect: "/admin/survey"
-    },
-    {
       path: "/login",
       name: "login",
       component: () => import("@/pages/login/login")
@@ -95,6 +91,7 @@ export default new Router({
     {
       path: "/admin",
       name: "admin",
+      redirect: "/admin/survey",
       meta: {
         requireAuth: true
       },
@@ -134,7 +131,61 @@ export default new Router({
                 requireAuth: true
               },
               component: () =>
-                import("@/pages/admin/tencentManage/tencentManage")
+                import("@/pages/admin/tencent/tencentManage/tencentManage")
+            },
+            {
+              // 自定义菜单
+              path: "/admin/tencent/customMenu",
+              name: "customMenu",
+              meta: {
+                requireAuth: true
+              },
+              component: () => import("@/pages/admin/tencent/customMenu")
+            },
+            {
+              // 个性化菜单
+              path: "/admin/tencent/personalizedMenu",
+              name: "personalizedMenu",
+              meta: {
+                requireAuth: true
+              },
+              component: () => import("@/pages/admin/tencent/personalizedMenu")
+            },
+            {
+              // 素材管理
+              path: "/admin/tencent/material",
+              name: "material",
+              meta: {
+                requireAuth: true
+              },
+              component: () => import("@/pages/admin/tencent/materialManage/material")
+            },
+            {
+              // 模板消息
+              path: "/admin/tencent/messageTemplate",
+              name: "messageTemplate",
+              meta: {
+                requireAuth: true
+              },
+              component: () => import("@/pages/admin/tencent/messageTemplate")
+            },
+            {
+              // 自动回复
+              path: "/admin/tencent/autoReplay",
+              name: "autoReplay",
+              meta: {
+                requireAuth: true
+              },
+              component: () => import("@/pages/admin/tencent/autoReplay")
+            },
+            {
+              // 粉丝标签
+              path: "/admin/tencent/fansLabel",
+              name: "fansLabel",
+              meta: {
+                requireAuth: true
+              },
+              component: () => import("@/pages/admin/tencent/fansLabel")
             }
           ]
         },
@@ -184,22 +235,6 @@ export default new Router({
           component: () => import("@/pages/admin/stuff/stuff")
         }
       ]
-    },
-    {
-      path: "/pay",
-      name: "pay",
-      meta: {
-        requireAuth: true
-      },
-      component: () => import('@/pages/admin/pay/pay')
-    },
-    {
-      path: '/payMain',
-      name: 'payMain',
-      meta: {
-        requireAuth: true
-      },
-      component: () => import('@/pages/admin/pay/payMain')
     }
   ]
 })

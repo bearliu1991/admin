@@ -37,9 +37,8 @@
 </template>
 <script>
 import { mapActions, mapGetters } from 'vuex'
-import { getCookie } from '@/utils/cookies'
 import {ArrDistinct} from '@/utils/util'
-import groupCheckBox from './groupCheckBox'
+import groupCheckBox from '@/components/GroupCheckBox'
 export default {
   props: {
     isAdd: {
@@ -58,7 +57,7 @@ export default {
           obj: {}
         }
       ],
-      accountList: getCookie('accountList'),
+      accountList: this.getCookie('accountList'),
       indeterminate: {
         accountIndeterminate: true
       },
@@ -126,7 +125,7 @@ export default {
           appAccountIds: this.checkAllGroup.accountCheckAllGroup
         }
       } else {
-        this.$Message.info('至少选择一个公众号和一个坐席权限')
+        this.$Message.error('至少选择一个公众号和一个坐席权限')
         return false
       }
     },

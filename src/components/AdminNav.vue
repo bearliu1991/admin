@@ -5,18 +5,16 @@
         <div class="nav-icon-img">
           <img src="http://xingke100.com/logo.png" alt="">
         </div>
-        <div class="nav-icon-text">
-          销大师
-        </div>
+        <div class="nav-icon-text">销大师</div>
       </div>
       <div class="nav-main">
         <ul>
-          <li v-for="(item, index) in unfoldData" :key="index" :class="{active:routerInfo.path.indexOf(item.urlName)>=0}" class="nav-item" @click="goToRouter(item.urlName, item.isSecond)" @mouseover="mouseActive(index)" @mouseout="mouseUnActive(index)">
+          <li v-for="(item, index) in mainMenuList" :key="index" :class="{active:routerInfo.path.indexOf(item.menuUrl)>=0}" class="nav-item" @click="goToRouter(item.menuUrl, item.isSecond)" @mouseover="mouseActive(index)" @mouseout="mouseUnActive(index)">
             <div class="img-iconfont">
               <i class="iconfont" :class="item.fontClass"></i>
             </div>
             <div class="text">
-              {{item.text}}
+              {{item.menuName}}
             </div>
           </li>
         </ul>
@@ -41,8 +39,8 @@
       </div>
       <div class="nav-main">
         <ul>
-          <li v-for="(item, index) in unfoldData" :key="index" class="nav-item" :class="{active:routerInfo.path.indexOf(item.urlName)>=0}" @click="goToRouterPackup(item.urlName, item.isSecond)" @mouseover="mouseActive(index)" @mouseout="mouseUnActive(index)">
-            <Tooltip :content="item.text" placement="right" :transfer="true">
+          <li v-for="(item, index) in mainMenuList" :key="index" class="nav-item" :class="{active:routerInfo.path.indexOf(item.menuUrl)>=0}" @click="goToRouterPackup(item.menuUrl, item.isSecond)" @mouseover="mouseActive(index)" @mouseout="mouseUnActive(index)">
+            <Tooltip :content="item.menuName" placement="right" :transfer="true">
               <div class="text-tootip"></div>
             </Tooltip>
             <div class="img-iconfont">
@@ -64,71 +62,53 @@
 </template>
 <script>
 import { mapGetters, mapActions } from 'vuex'
-// import { setCookie } from '@/utils/cookies'
 export default {
   name: 'adminNav',
   data() {
     return {
       unfoldData: [
         {
-          navImg: require('@/assets/images/navbig/1.png'),
-          activeImg: require('@/assets/images/navbig/1active.png'),
           fontClass: "icon-gaikuang",
-          text: '概况',
+          name: '概况',
           urlName: 'survey'
         },
         {
-          navImg: require('@/assets/images/navbig/2.png'),
-          activeImg: require('@/assets/images/navbig/2active.png'),
           fontClass: "icon-weixin",
-          text: '公众号',
+          name: '公众号',
           urlName: 'tencent',
-          isSecond: true
+          isSecond: true,
         },
         {
-          navImg: require('@/assets/images/navbig/3.png'),
-          activeImg: require('@/assets/images/navbig/3active.png'),
           fontClass: "icon-yuangong",
-          text: '员工',
+          name: '员工',
           urlName: 'stuff'
         },
         {
-          navImg: require('@/assets/images/navbig/4.png'),
-          activeImg: require('@/assets/images/navbig/4active.png'),
           fontClass: "icon-zuoxi",
-          text: '坐席',
+          name: '坐席',
           urlName: 'seats'
         },
         {
-          navImg: require('@/assets/images/navbig/5.png'),
-          activeImg: require('@/assets/images/navbig/5active.png'),
           fontClass: "icon-yingxiao",
-          text: '营销'
+          name: '营销'
         },
         {
-          navImg: require('@/assets/images/navbig/6.png'),
-          activeImg: require('@/assets/images/navbig/6active.png'),
           fontClass: "icon-qunfa",
-          text: '群发'
+          name: '群发'
         },
         {
-          navImg: require('@/assets/images/navbig/7.png'),
-          activeImg: require('@/assets/images/navbig/7active.png'),
           fontClass: "icon-fensi",
-          text: '粉丝'
+          name: '粉丝'
         },
         {
-          navImg: require('@/assets/images/navbig/8.png'),
-          activeImg: require('@/assets/images/navbig/8active.png'),
           fontClass: "icon-tongji",
-          text: '统计'
+          name: '统计'
         },
         {
-          navImg: require('@/assets/images/navbig/9.png'),
-          activeImg: require('@/assets/images/navbig/9active.png'),
           fontClass: "icon-shezhi",
-          text: '设置',
-          urlName: 'setting'
+          name: '设置',
+          urlName: 'setting',
+          isSecond: true
         }
       ],
       mouseStatus: -1
@@ -137,20 +117,22 @@ export default {
   computed: {
     ...mapGetters({
       collapsed: 'nav/getCollapsed',
-      routerInfo: 'nav/getRouterInfo'
+      routerInfo: 'nav/getRouterInfo',
+      mainMenuList: 'nav/getMainMenuList'
     })
   },
-  mounted() {},
+  mounted() {
+  },
   methods: {
     mouseActive(index) {
       this.mouseStatus = index
     },
     goToRouter(name, isSecond) {
       if (isSecond) {
-        if (this.routerInfo.name.indexOf(name) < 0) {
+        if (this.routerInfo.path.indexOf(name) < 0) {
           // for (let k in this.secondMenu) {
           //   if (k === name) {
-          //     setCookie('secondMenu', this.secondMenu[k])
+          //     this.setCookie('secondMenu', this.secondMenu[k])
           //     this.$root.Bus.$emit('selectSecondMenu')
           //     break
           //   }
@@ -168,10 +150,10 @@ export default {
     goToRouterPackup(name, isSecond) {
       if (isSecond) {
         this.setCollapsed(true)
-        if (this.routerInfo.name.indexOf(name) < 0) {
+        if (this.routerInfo.path.indexOf(name) < 0) {
           // for (let k in this.secondMenu) {
           //   if (k === name) {
-          //     setCookie('secondMenu', this.secondMenu[k])
+          //     this.setCookie('secondMenu', this.secondMenu[k])
           //     this.$root.Bus.$emit('selectSecondMenu')
           //     break
           //   }

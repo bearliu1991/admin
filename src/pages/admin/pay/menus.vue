@@ -41,8 +41,8 @@
         </div>
         <div class="num_control" v-if="selectedIdx === index">
           <Input v-model="numInput" class="num_input" @on-blur="inputBlur(paramHandle(item))">
-            <span slot="prepend" class="minus btn" @click="minusNum(paramHandle(item))">-</span>
-            <span slot="append" class="plus btn" @click="plusNum(paramHandle(item))">+</span>
+            <span slot="prepend" class="minus btn fn12" :class="{'disabled': minusDisable}" @click.stop="minusNum(paramHandle(item))">—</span>
+            <span slot="append" class="plus btn fn20" :class="{'disabled': plusDisable}" @click.stop="plusNum(paramHandle(item))">+</span>
           </Input>
           <p class="num_tips">每个企业限购{{paramHandle(item) && (paramHandle(item).mostBuyNum - paramHandle(item).usedNum)}}件</p>
         </div>
@@ -57,7 +57,9 @@
         return {
           numInput: 1,
           selectedIdx: -1,
-          childActiveIdx: -1
+          childActiveIdx: -1,
+          minusDisable: false,
+          plusDisable: false
         }
     },
     props: {
@@ -76,11 +78,11 @@
       init() {
         // 获取正在使用的套餐的角标
         this.menuList.forEach((item, idx) => {
-          if (item.recommend) {
+          if (item.recommend === 1) {
             this.selectedIdx = idx
             if (item.arr) {
               item.arr.forEach((val, index) => {
-                val.recommend && (this.childActiveIdx = index)
+                val.recommend === 1 && (this.childActiveIdx = index)
               })
             }
           }
@@ -104,6 +106,8 @@
       },
       // 各大类套餐之间切换
       setActive(item, idx) {
+        this.minusDisable = false
+        this.plusDisable = false
         if (this.selectedIdx === idx) return false
         if (!item.isVailUse) return false
         this.childActiveIdx = this.getChildIndex(item)
@@ -126,6 +130,8 @@
       },
       // 同组之间套餐切换
       childSetActive(val, index, idx) {
+        // this.minusDisable = false
+        // this.plusDisable = false
         this.childActiveIdx = idx
         this.numInput = 1
         this.handleEmit(val)
@@ -141,18 +147,26 @@
         this.handleEmit(item)
       },
       plusNum(item) {
-        if (this.numInput + 1 > item.mostBuyNum - item.usedNum) return false
-        this.numInput += 1
-        this.handleEmit(item)
+        if (this.numInput + 1 > item.mostBuyNum - item.usedNum) {
+          this.plusDisable = true
+        } else {
+          this.minusDisable = false
+          this.numInput += 1
+          this.handleEmit(item)
+        }
       },
       minusNum(item) {
-        if (this.numInput < 2) return false
-        this.numInput -= 1
-        this.handleEmit(item)
+        if (this.numInput < 2) {
+          this.minusDisable = true
+        } else {
+          this.plusDisable = false
+          this.numInput -= 1
+          this.handleEmit(item)
+        }
       },
       // 抛出数据
       handleEmit(obj) {
-        if (obj.arr) {
+        if (obj && obj.arr) {
           this.emitSelect(obj.arr[this.childActiveIdx], this.numInput)
         } else {
           this.emitSelect(obj, this.numInput)
@@ -303,6 +317,8 @@
         .num_input
           width:90px
           margin:0 auto
+          span.disabled
+            color(#ccc)
         mt(4px)
         .btn
           absolute()

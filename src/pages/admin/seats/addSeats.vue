@@ -46,12 +46,11 @@
         </div>
       </div>
     </drawer>
-    
+
   </div>
 </template>
 <script>
 import { mapActions, mapGetters } from 'vuex'
-import { getCookie } from '@/utils/cookies'
 import { saveSeat } from '@/api/query'
 import addFirstStep from './addFirstStep'
 import seatsLimit from './seatsLimit'
@@ -71,7 +70,7 @@ export default {
       isJixuAdd: false,
       showAddSeats: false,
       currentSteps: 0,
-      accountList: getCookie('accountList') || [],
+      accountList: this.getCookie('accountList') || [],
       saveSeatParams: {
         seatId: null,
         remark: null,
@@ -96,7 +95,7 @@ export default {
     //   this.saveSeatParams = JSON.stringify(this.saveSeatParams)
     //   let formData = new FormData()
     //   formData.append('saveSeatParams', this.saveSeatParams)
-    //   axios.post('http://localhost:8091/api/seats/saveSeat', formData).then(data => {
+    //   axios.post('/api/seats/saveSeat', formData).then(data => {
 
     //   })
     // saveSeat(this.saveSeatParams).then(data => {
@@ -111,9 +110,9 @@ export default {
     //       }, 0.1)
     //     }
     //   } else if (data.code === 5018) {
-    //     this.$Message.warning(data.message)
+    //     this.$Message.error(data.message)
     //   } else {
-    //     this.$Message.warning(data.message)
+    //     this.$Message.error(data.message)
     //     this.hideAddSeats()
     //   }
     // }).catch(() => {
@@ -137,15 +136,15 @@ export default {
               // }, 0.1)
             }
           } else if (data.code === 5018) {
-            this.$Message.warning(data.message)
+            this.$Message.error(data.message)
           } else {
-            this.$Message.warning(data.message)
+            this.$Message.error(data.message)
             this.hideAddSeats()
           }
         })
         .catch(() => {
           this.doneLoading = false
-          this.$Message.warning('添加坐席失败')
+          this.$Message.error('添加坐席失败')
         })
     },
     showDrawer() {
@@ -244,5 +243,5 @@ export default {
       &:nth-of-type(1)
         width 130px
 </style>
- 
- 
+
+

@@ -12,7 +12,7 @@
 
     <div class="owly-upload-content">
         <div class="owly-upload-img" @click="showBigImg">
-            <img v-if="blob" :src="blob" @click="showBigImg"/>
+            <img v-if="fileId" :src="ImgUrl" @click="showBigImg"/>
         </div>
         <input class="owly-upload-input" accept="image/*" type="file" ref="upload" id="owly-upload">
         <div class="owly-upload-img-left">
@@ -30,7 +30,7 @@
         title="付款凭证"
         style="z-index: 10001;position: fixed;"
         width="800">
-        <img width='100%' height="500" :src="blob" />
+        <img width='100%' height="500" :src="ImgUrl" />
         <div slot="footer"></div>
     </Modal>
 </div>
@@ -38,7 +38,7 @@
 
 <script>
 import FileUpload from '@/components/webuploader/upload'
-const ROOT = process.env.API_ROOT
+const ROOT = ''
 export default {
   name: 'uploadfile',
   components: {
@@ -58,12 +58,17 @@ export default {
     uploadUrl: {
       // 上传接口
       type: String,
-      default: ROOT + '/upload'
+      default: ROOT + '/api/upload'
     },
-    overviewUrl: {
+    overview: {
       // 读取接口
       type: String,
-      default: ROOT + '/overview'
+      default: ROOT + '/api/overview'
+    },
+    deleteuploadfile: {
+      // 删除图片
+      type: String,
+      default: ROOT + '/api/deleteuploadfile'
     }
   },
   data() {
@@ -77,6 +82,11 @@ export default {
       ie9: this.ltIE10()
     }
   },
+  computed: {
+      ImgUrl () {
+        return this.fileId ? this.Path.overview + '?fileId=' + this.fileId : ''
+      }
+    },
   methods: {
     selectFile() {
       let owlyUpload = document.getElementById('owly-upload')
@@ -88,25 +98,29 @@ export default {
     submit() {
       if (this.fileId) {
         // 跟换图片是删除之前的那张
-        this.$get(this.deleteuploadfile, { fileId: this.fileId }).then(res => {
+        this.$get(this.Path.deleteuploadfile, { fileId: this.fileId }).then(res => {
           console.log(res)
         })
       }
       let file = this.$refs['upload']
       let formData = new FormData()
       let uploadfile = file.files[0]
+       if (!uploadfile.type.includes('image/')) {
+          this.$Message.warning('请选择图片')
+          return
+        }
       if (uploadfile.size > this.limitSize * 1024 * 1024) {
         this.uploadErr = true
         return
       }
       if (!uploadfile) return
-      formData.append('logo', uploadfile)
-      this.$post(this.uploadUrl, formData)
+      formData.append('file', uploadfile)
+      this.$post(this.Path.upload, formData)
         .then(res => {
           if (res.data.code === 1) {
             this.isShowBigImg = true
             this.fileId = res.data.data
-            this.readImage(res.data.data)
+            // this.readImage(res.data.data)
             this.uploadSucess(res.data.data)
           } else {
             this.uploadFail(res.data)
@@ -145,6 +159,7 @@ export default {
       this.blob = ''
       this.$emit('uploadSucess', '')
       this.$get(this.deleteuploadfile, { fileId: this.fileId }).then(res => {
+        this.fileId = ''
         console.log(res)
       })
     },

@@ -32,7 +32,6 @@
 <script>
 import { phone } from '@/utils/regExp'
 import { resendCode, getSession } from '@/api/query'
-import { getToken, setToken } from '@/utils/cookies'
 import {mapActions} from 'vuex'
 const TIMENUM = 60
 export default {
@@ -83,7 +82,7 @@ export default {
       oneMinute: '获取验证码',
       alreadyRegister: '',
       codeError: '',
-      token: getToken(),
+      token: this.getToken(),
       codeParams: {},
       isCode: false
     }
@@ -103,8 +102,8 @@ export default {
         .then(data => {
           if (data.code === 1) {
             let tokenData = Object.assign({}, this.token, data.data)
-            tokenData.corpList = []
-            setToken(tokenData, 0.5)
+            tokenData.corpList = 0
+            this.setToken(tokenData, 0.5)
             this.setStep(2)
           }
         })

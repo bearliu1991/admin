@@ -28,3 +28,23 @@ npm test
 ```
 
 For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+
+  deleteuploadfile: "api/deleteuploadfile",
+  // 上传图片
+  upload: "api/upload",
+  // 查看图片
+  overview: "api/overview",
+  const uploadService = 'api' 添加前缀
+
+// 上传名片
+export const uploadPostcard = (params) => api.get('/uploadpostcard', params)
+// 下载名片(没有api)
+export const downloadPostcard = (params) => {
+    let downLoadUrl = "/downloadpostcard" + '?' + params.fileName + "=" + params.filePath
+    window.location.href = downLoadUrl
+}
+// 获得sessionId
+export const getSessionId = () => api.get('/getSessionId')
+
+mi.uploadService = new jsonProxy("/webuploader/upload/");
+initUrl: this.url + '/webuploader/upload'

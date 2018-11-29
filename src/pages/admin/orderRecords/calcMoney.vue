@@ -4,14 +4,14 @@
       <ul>
         <li>
           <span>付款合计</span>
-          <i>¥{{total}}</i>
+          <i>¥{{toFix(total)}}</i>
         </li>
         <li>
           <span>抵扣小计</span>
-          <i>¥{{deduction}}</i>
+          <i>¥{{toFix(deduction)}}</i>
         </li>
       </ul>
-      <RealPay :realPay="minusVal" :status="status"></RealPay>
+      <RealPay :realPay="toFix(orderPayprice / 100)" :status="status"></RealPay>
     </div>
   </div>
 </template>
@@ -21,26 +21,22 @@
     name: 'calcMoney',
     props: {
       total: {
-        type: Number,
+        type: [Number, String],
         default: 0
       },
       deduction: {
-        type: Number,
+        type: [Number, String],
         default: 0
       },
       status: {
         type: 0
+      },
+      orderPayprice: {
+        type: [String, Number],
+        default: 0
       }
     },
-    components: { RealPay },
-    computed: {
-      minusVal() {
-        return this.total !== undefined && (this.deduction !== undefined) ? (this.total - this.deduction) / 100 : 0
-      }
-    },
-    methods: {
-      
-    }
+    components: { RealPay }
   }
 </script>
 <style lang="stylus" scoped>

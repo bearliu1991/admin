@@ -4,7 +4,7 @@
       <OperateSteps :current="currentSteps"></OperateSteps>
     </div>
     <div class="upgrade-order-wrapper order-wrapper-item" v-if="currentSteps==0">
-      <orderPay @submitOrder="submitOrder"></orderPay>
+      <orderPay @nextOrderStep="nextOrderStep" @submitOrder="submitOrder"></orderPay>
     </div>
     <div class="pay-for-order order-wrapper-item" v-if="currentSteps==1">
       <payment @restartOrder="restartOrder" @nextOrderStep="nextOrderStep"></payment>
@@ -18,7 +18,6 @@
 <script>
 // 全局订单流程
 import { mapGetters } from 'vuex'
-import {getCookie, setCookie} from '@/utils/cookies'
 import OperateSteps from '@/components/OperateSteps'
 import orderPay from '@/pages/admin/pay/OrderPay'
 import payment from '@/pages/admin/pay/payment'
@@ -27,12 +26,12 @@ export default {
   name: 'upgrdeOrder',
   data() {
     return {
-      currentSteps: (getCookie('saveStepsData') && getCookie('saveStepsData').current) || 0,
+      currentSteps: (this.getCookie('saveStepsData') && this.getCookie('saveStepsData').current) || 0,
       saveStepsData: {
         current: 0,
         name: this.$route.name
       },
-      complateStatus: getCookie('nextOrderStep') || 1
+      complateStatus: this.getCookie('nextOrderStep') || 1
     }
   },
   computed: {
@@ -43,16 +42,18 @@ export default {
   mounted() {
     this.$nextTick(() => {
       this.setCurrentCokie()
-      this.$root.Bus.$emit('calcScrollHeight')
+      this.$nextTick(() => {
+        this.$root.Bus.$emit('calcScrollHeight')
+      })
     })
   },
   methods: {
     setCurrentCokie() {
       this.saveStepsData.current = this.currentSteps
-      setCookie('saveStepsData', this.saveStepsData)
+      this.setCookie('saveStepsData', this.saveStepsData)
     },
-    submitOrder() {
-      this.currentSteps = 1
+    submitOrder(val) {
+      this.currentSteps = val
       this.setCurrentCokie()
     },
     restartOrder() {
@@ -61,7 +62,7 @@ export default {
     },
     nextOrderStep(val) {
       this.complateStatus = val
-      setCookie('nextOrderStep', val)
+      this.setCookie('nextOrderStep', val)
       this.currentSteps = 2
       this.setCurrentCokie()
     }
@@ -77,7 +78,9 @@ export default {
     },
     currentSteps() {
       // 让滚动条重新计算
-      this.$root.Bus.$emit('calcScrollHeight')
+      this.$nextTick(() => {
+        this.$root.Bus.$emit('calcScrollHeight')
+      })
     }
   },
   components: {

@@ -3,7 +3,7 @@
     <table width="100%">
       <thead>
         <tr>
-          <td v-for="(item, index) in columns" :key="index" v-html="item"></td>
+          <td v-for="(item, index) in columns" :key="index" v-html="item" :style="{width: item === '订购人微信' && '170px'}"></td>
         </tr>
       </thead>
       <tbody>
@@ -77,6 +77,9 @@
           radius(3px)
         .infos
           fl()
+          p
+            width 120px
+            ellipsis()
       span
         inline()
         vertical(20px)

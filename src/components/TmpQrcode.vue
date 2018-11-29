@@ -1,7 +1,7 @@
 <template>
   <div class="tmpQrcode">
     <div class="qrcode-img" :style="styles">
-      <Spin fix v-show="loadingImg">
+      <Spin fix v-show="status === 0">
         <Icon type="load-c" size=40 class="spin-icon-load"></Icon>
         <div>loading</div>
       </Spin>
@@ -9,7 +9,7 @@
       <div class="loss" v-show="status == 3">
         <div class="loss-center" :class="{registerCenter: qrcodeType=='Register'}">
           <img src="@/assets/images/excalmatory-mark.png" alt="excalmatory">
-          二维码已失效
+          {{contentText}}
         </div>
       </div>
     </div>
@@ -40,9 +40,8 @@ import {
   getTmpQrcode,
   getSession,
   getPersonalInfo,
-  getDefaultInfo
+  saveloginCompany
 } from '@/api/query'
-import { setToken, setCookie } from '@/utils/cookies'
 import {mapActions} from 'vuex'
 export default {
   props: {
@@ -68,47 +67,62 @@ export default {
     return {
       content: '很抱歉，您的微信账号已被禁用，请换一个微信试一试吧。如需帮助，请联系销大师，咨询电话：400-8556 888。',
       loginData: [],
-      appAccountId: '',
-      loadingImg: true,
       timer: null,
-      status: 1,
+      status: 0,
       refreshBtn: false,
       tokenData: {},
       timeoutTimer: null,
-      forbidden: false
+      forbidden: false,
+      contentText: '111'
     }
   },
   created() {
-    this.getDefaultInfo()
+    this.getTmpQrcode()
   },
   methods: {
+    // 进入公司信息
+    saveloginCompany(param, name) {
+      let obj = {
+        corpId: param
+      }
+      saveloginCompany(obj).then(data => {
+        if (data.code === 1) {
+          if (!data.data.menuTree) {
+            this.$Message.error('非常抱歉，您暂无权限，不能进入管理')
+            return
+          }
+          this.$router.push({ name: name })
+        } else {
+          this.removeCookie('currentCorp')
+        }
+      })
+    },
     refresh() {
       this.refreshBtn = true
       this.getTmpQrcode()
     },
-    getDefaultInfo() {
-      getDefaultInfo().then(data => {
-        this.appAccountId = data.data.defaultWechatAccountid
-        this.tokenData = Object.assign({}, this.tokenData, data.data)
-        this.getTmpQrcode()
-      })
-    },
+    // getDefaultInfo() {
+    //   getDefaultInfo().then(data => {
+    //     this.appAccountId = data.data.defaultWechatAccountid
+    //     this.tokenData = Object.assign({}, this.tokenData, data.data)
+    //     this.getTmpQrcode()
+    //   })
+    // },
     getTmpQrcode() {
       let params = {
         platformType: 3,
         qrcodeType: 'TMPQRCODE_LOGIN_SESSIONID',
         expireSeconds: 6000,
-        appAccountId: this.appAccountId,
+        appAccountId: null,
         corpId: null,
         mobile: null
       }
-      this.loadingImg = true
+      this.status = 0
       getTmpQrcode(params)
         .then(data => {
           if (data.code === 1) {
             this.refreshBtn = false
             this.status = 1
-            this.loadingImg = false
             this.loginData = data.data
             this.getSession()
             if (!this.timer) {
@@ -117,13 +131,23 @@ export default {
               }, 5000)
             }
             this.timeoutTimer = setTimeout(() => {
+              this.contentText = '二维码已失效'
               this.status = 3
+              this.refreshBtn = false
               clearInterval(this.timer)
               this.timer = null
             }, data.data.expireSeconds * 1000)
+          } else {
+            this.status = 3
+            this.contentText = '服务开小差啦'
+            this.$Message.error('抱歉！服务暂时不可用，请稍后再试！')
+            this.refreshBtn = false
           }
         })
         .catch(() => {
+          this.contentText = '服务开小差啦'
+          this.$Message.error('抱歉！服务暂时不可用，请稍后再试！')
+          this.status = 3
           this.refreshBtn = false
         })
     },
@@ -131,27 +155,27 @@ export default {
       getPersonalInfo().then(data => {
         if (data.code === 1) {
           this.status = 2
-          this.tokenData.corpList = data.data.corpList
-          setToken(this.tokenData, 0.5)
-          if (data.data.corpList.length === 0) {
+          this.tokenData.corpList = (data.data.corpList && data.data.corpList.length) || 0
+          this.setToken(this.tokenData, 0.5)
+          if (data.data.corpList === null || (data.data.corpList && data.data.corpList.length === 0)) {
             this.setStep(2)
             setTimeout(() => {
               if (this.qrcodeType === 'Register') {
               } else {
-                this.$Message.warning('您还没有绑定企业，请先绑定企业')
+                this.$Message.error('您还没有绑定企业，请先绑定企业')
                 this.$router.push({name: 'register'})
               }
             }, 1500)
-          } else if (data.data.corpList.length === 1) {
-            if (data.data.corpList[0].status !== 'ACTIVE') {
+          } else if (data.data.corpList && data.data.corpList.length === 1) {
+            if (data.data.corpList[0].corpStatus !== 'ACTIVE') {
               this.$router.push({ name: 'company' })
             } else {
               let currentCorp = {
                 applyId: data.data.corpList[0].corpId,
                 corpName: data.data.corpList[0].companyName
               }
-              setCookie('currentCorp', currentCorp)
-              this.$router.push({ name: 'survey' })
+              this.setCookie('currentCorp', currentCorp)
+              this.saveloginCompany(data.data.corpList[0].corpId, 'survey')
             }
           } else {
             setTimeout(() => {
@@ -171,13 +195,13 @@ export default {
               this.status = 2
               this.tokenData = Object.assign({}, this.tokenData, data.data)
               this.tokenData.corpList = []
-              setToken(this.tokenData, 0.5)
+              this.setToken(this.tokenData, 0.5)
               if (data.data.mobileStatus !== 'BIND') {
                 this.setStep(1)
                 if (this.qrcodeType === 'Register') {
                 } else {
                   setTimeout(() => {
-                    this.$Message.warning('您还没有绑定手机，请先绑定手机')
+                    this.$Message.error('您还没有绑定手机，请先绑定手机')
                     this.$router.push({name: 'register'})
                   }, 1500)
                 }
@@ -186,7 +210,7 @@ export default {
               }
               break
             case 0:
-              this.$Message.warning(data.message)
+              this.$Message.error(data.message)
               break
             // case 2524:
             //   this.forbidden = true
@@ -228,7 +252,7 @@ export default {
       left 0
       background-color rgba(255, 255, 255, 0.9)
       .loss-center
-        margin-top 75px
+        margin-top 80px
         &.registerCenter
           margin-top 80px
         img

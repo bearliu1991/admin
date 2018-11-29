@@ -14,8 +14,8 @@
         <FormItem label="手机号码" v-for="(item, index) in userInfo.corpList" :key="index">
             <div>
               <p class="editPhone">
-                {{item.bindMobile}}
-                <Icon class="handle" size="16" title="修改" @click="phoneEdit(item.bindMobile,item.corpId)" type="edit"></Icon>
+                {{item.eeMobile}}
+                <Icon class="handle" size="16" title="修改" @click="phoneEdit(item.eeMobile, item.corpId)" type="edit"></Icon>
               </p>
               <p class="company-item">
                 {{item.companyName}}
@@ -47,7 +47,6 @@
 
 <script>
 import { editUser, getPersonalInfo } from '@/api/query'
-import { getToken } from '@/utils/cookies'
 export default {
   data() {
     return {
@@ -61,7 +60,7 @@ export default {
         ]
       },
       userInfo: {},
-      token: getToken(),
+      token: this.getToken(),
       loadingImg: true
     }
   },

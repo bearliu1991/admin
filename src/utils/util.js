@@ -23,7 +23,6 @@ export function isNumber(inputData) {
 
 export function debounce(func, delay) {
   let timer
-
   return function (...args) {
     if (timer) {
       clearTimeout(timer)
@@ -161,4 +160,26 @@ export function ArrDistinct(arr1, arr2) {
     })
   })
   return result
+}
+
+export function toFix(val, num) {
+  let n = num === undefined ? 2 : num
+  if (parseFloat(val).toString() === "NaN") {
+    return '--'
+  } else {
+    return (parseInt(val * 100) / 100).toFixed(n)
+  }
+}
+
+export function skipUrl(url) {
+  let newLink = document.createElement('a')
+  newLink.href = url
+  if (!!window.ActiveXObject || "ActiveXObject" in window) {
+    newLink.target = '_blank'
+  } else {
+    newLink.target = '_self'
+  }
+  document.body.appendChild(newLink)
+  newLink.click()
+  document.body.removeChild(newLink)
 }

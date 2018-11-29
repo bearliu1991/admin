@@ -8,7 +8,7 @@
         @on-visible-change="visibleChange"
         @on-cancel="modalCancel">
         <div>
-          <div class="title">            
+          <div class="title">
             收款方信息
           </div>
           <Row class="row-msg">
@@ -37,7 +37,7 @@
           </Row>
         </div>
         <div>
-          <div class="title">            
+          <div class="title">
             付款方信息（请填写好您的付款账号信息或付款凭证）
           </div>
           <Row class="row-msg">
@@ -47,15 +47,15 @@
             <Col span="18">
               ￥{{pingzhengInfo.realPayment}}
             </Col>
-          </Row>          
+          </Row>
         </div>
         <div class="row-msg">
             <RadioGroup v-model="pingzhengInfo.payType" @on-change="payTypeChange">
                 <Radio label="0">名称账号信息</Radio>
                 <Radio label="1">付款凭证</Radio>
-            </RadioGroup>  
+            </RadioGroup>
         </div>
-        <div v-if="pingzhengInfo.payType === '1'">
+        <div v-show="pingzhengInfo.payType === '1'">
           <Row class="row-msg">
             <Col span="4">
               <span class="need"></span>打款凭证
@@ -64,9 +64,9 @@
               <Upload @uploadSucess="uploadSuccess" v-if="showModal && (pingzhengInfo.payType === '1')"></Upload>
               <div v-if="errorTips.payVoucher" class="err-tip pingzheng">请上传打款凭证</div>
             </Col>
-          </Row>          
+          </Row>
         </div>
-        <div v-else>
+        <div v-show="pingzhengInfo.payType !== '1'">
           <Row class="row-msg">
             <Col span="4" style="line-height: 40px; ">
               <span class="need"></span>名称
@@ -82,9 +82,9 @@
             </Col>
             <Col span="18">
               <Input @on-blur="inputChange('accountNo')" v-model="formParams.accountNo" placeholder="请填写付款账户" style="width: 360px; "></Input>
-              <div class="err-tip" v-if="errorTips.accountNo">账号不能为空</div>
+              <div class="err-tip" v-if="errorTips.accountNo">{{errorTextAccountNo}}</div>
             </Col>
-          </Row> 
+          </Row>
         </div>
         <div>
           <Row class="row-msg">
@@ -92,9 +92,9 @@
               付款时间
             </Col>
             <Col span="18">
-              <DatePicker format="yyyy-MM-dd HH:mm:ss" @on-change="dateChange"  :transfer="true" :editable="false" :options="options" type="datetime" placeholder="请选择付款时间" style="width: 228px; "></DatePicker>
+              <DatePicker format="yyyy-MM-dd HH:mm:ss" @on-change="dateChange"  :transfer="true" :editable="false" type="datetime" placeholder="请选择付款时间" style="width: 228px; "></DatePicker>
             </Col>
-          </Row>   
+          </Row>
         </div>
         <div slot="footer">
             <Button class="btns-sure" type="primary" @click="modalOk">确定</Button>
@@ -105,7 +105,6 @@
 
 <script>
 import { savePayVoucherTradeOrder, saveAccountTradeOrder } from '@/api/query'
-import { getCookie } from '@/utils/cookies'
 export default {
   name: 'modalValidateForm',
   components: {},
@@ -158,50 +157,55 @@ export default {
         accountName: false,
         payVoucher: false
       },
-      options: {
-        shortcuts: [
-          {
-            text: 'Today',
-            value() {
-              return new Date()
-            },
-            onClick: picker => {
-              this.$Message.info('Click today')
-            }
-          },
-          {
-            text: 'Yesterday',
-            value() {
-              const date = new Date()
-              date.setTime(date.getTime() - 3600 * 1000 * 24)
-              return date
-            },
-            onClick: picker => {
-              this.$Message.info('Click yesterday')
-            }
-          },
-          {
-            text: 'One week',
-            value() {
-              const date = new Date()
-              date.setTime(date.getTime() - 3600 * 1000 * 24 * 7)
-              return date
-            },
-            onClick: picker => {
-              this.$Message.info('Click a week ago')
-            }
-          }
-        ]
-      }
+      errorTextAccountNo: ''
+      // options: {
+      //   shortcuts: [
+      //     {
+      //       text: 'Today',
+      //       value() {
+      //         return new Date()
+      //       },
+      //       onClick: picker => {
+      //       }
+      //     },
+      //     {
+      //       text: 'Yesterday',
+      //       value() {
+      //         const date = new Date()
+      //         date.setTime(date.getTime() - 3600 * 1000 * 24)
+      //         return date
+      //       },
+      //       onClick: picker => {
+      //       }
+      //     },
+      //     {
+      //       text: 'One week',
+      //       value() {
+      //         const date = new Date()
+      //         date.setTime(date.getTime() - 3600 * 1000 * 24 * 7)
+      //         return date
+      //       },
+      //       onClick: picker => {
+      //       }
+      //     }
+      //   ]
+      // }
     }
   },
-  mounted() { },
+  mounted() {},
   computed: {
     showModal: {
       get() {
         return this.modal
       },
       set() {}
+    }
+  },
+  watch: {
+    'formParams.accountNo'(val) {
+      this.formParams.accountNo = this.formParams.accountNo
+        .replace(/[^\d]/g, '')
+        .replace(/(\d{4})(?=\d)/g, '$1 ')
     }
   },
   methods: {
@@ -214,22 +218,30 @@ export default {
             this.$emit('close', false)
             this.$Message.success('上传凭证成功')
             break
+          case 110:
+            this.$emit('close', false)
+            this.$Message.error(data.message)
+            break
           case 3550:
             this.$emit('close', false)
-            this.$Message.warning(data.message)
+            this.$Message.error(data.message)
             break
           case 6601:
             this.$emit('close', false)
-            this.$Message.warning(data.message)
+            this.$Message.error(data.message)
             break
           case 6605:
             this.$emit('close', false)
-            this.$Message.warning(data.message)
+            this.$Message.error(data.message)
             break
           case 6606:
             this.$emit('close', false)
-            this.$Message.warning(data.message)
-            break        
+            this.$Message.error(data.message)
+            break
+          case 5503:
+            this.$emit('close', false)
+            this.$Message.error(data.message)
+            break
           default:
             break
         }
@@ -246,20 +258,24 @@ export default {
             break
           case 3550:
             this.$emit('close', false)
-            this.$Message.warning(data.message)
+            this.$Message.error(data.message)
             break
           case 6601:
             this.$emit('close', false)
-            this.$Message.warning(data.message)
+            this.$Message.error(data.message)
             break
           case 6605:
             this.$emit('close', false)
-            this.$Message.warning(data.message)
+            this.$Message.error(data.message)
             break
           case 6606:
             this.$emit('close', false)
-            this.$Message.warning(data.message)
-            break        
+            this.$Message.error(data.message)
+            break
+          case 5503:
+            this.$emit('close', false)
+            this.$Message.error(data.message)
+            break
           default:
             break
         }
@@ -275,15 +291,19 @@ export default {
         if (this.formParams.accountName.trim() === '') {
           this.errorTips.accountName = true
         }
-        if (this.formParams.accountNo.trim() === '') {
+        if (this.formParams.accountNo.alltrim() === '') {
+          this.errorTips.accountNo = true
+          this.errorTextAccountNo = '账号不能为空'
+        } else if (!this.isBankCard(this.formParams.accountNo.alltrim())) {
+          this.errorTextAccountNo = '您输入的账号错误，请重新检查账号'
           this.errorTips.accountNo = true
         }
         if (!this.errorTips.accountNo && !this.errorTips.accountName) {
           // 写提交代码
           let params = {
-            orderId: getCookie('orderId'),
-            accountName: this.formParams.accountName,
-            accountNo: this.formParams.accountNo,
+            orderId: this.getCookie('orderId'),
+            accountName: this.formParams.accountName.alltrim(),
+            accountNo: this.formParams.accountNo.alltrim(),
             payTime: this.formParams.payTime
           }
           this.saveAccountTradeOrder(params)
@@ -295,7 +315,7 @@ export default {
         if (!this.errorTips.payVoucher) {
           // 写提交代码
           let params = {
-            orderId: getCookie('orderId'),
+            orderId: this.getCookie('orderId'),
             payVoucher: this.formParams.payVoucher,
             payTime: this.formParams.payTime
           }
@@ -304,7 +324,7 @@ export default {
       }
     },
     dateChange(val, newData) {
-      this.formParams.payTime = '2018-10-18 17:00:00'
+      this.formParams.payTime = val
     },
     inputChange(val) {
       if (val === 'accountName') {
@@ -316,6 +336,7 @@ export default {
       } else {
         if (this.formParams.accountNo === '') {
           this.errorTips.accountNo = true
+          this.errorTextAccountNo = '账号不能为空'
         } else {
           this.errorTips.accountNo = false
         }
@@ -340,6 +361,84 @@ export default {
     uploadSuccess(path) {
       this.errorTips.payVoucher = false
       this.formParams.payVoucher = path
+    },
+    /**
+     * @author Rui.Zhang
+     * @description 判断是否为银行卡号
+     * @param {String} strCardNo 待校验的数据
+     * @returns {Boolean}, true:是银行卡号
+     **/
+    isBankCard(strCardNo) {
+      strCardNo = strCardNo || String(this)
+      if (strCardNo.trim() === '' || strCardNo === undefined) {
+        return false
+      }
+      console.log(111)
+      var lastNum = strCardNo.substr(strCardNo.length - 1, 1) // 取出最后一位（与luhm进行比较）
+
+      var first15Num = strCardNo.substr(0, strCardNo.length - 1) // 前15或18位
+      var newArr = []
+      for (var i = first15Num.length - 1; i > -1; i--) {
+        // 前15或18位倒序存进数组
+        newArr.push(first15Num.substr(i, 1))
+      }
+      var arrJiShu = [] // 奇数位*2的积 <9
+      var arrJiShu2 = [] // 奇数位*2的积 >9
+
+      var arrOuShu = [] // 偶数位数组
+      for (var j = 0; j < newArr.length; j++) {
+        if ((j + 1) % 2 === 1) {
+          // 奇数位
+          if (parseInt(newArr[j]) * 2 < 9) {
+            arrJiShu.push(parseInt(newArr[j]) * 2)
+          } else {
+            arrJiShu2.push(parseInt(newArr[j]) * 2)
+          }
+        } else arrOuShu.push(newArr[j]) // 偶数位
+      }
+
+      var jishuchild1 = [] // 奇数位*2 >9 的分割之后的数组个位数
+      var jishuchild2 = [] // 奇数位*2 >9 的分割之后的数组十位数
+      for (var h = 0; h < arrJiShu2.length; h++) {
+        jishuchild1.push(parseInt(arrJiShu2[h]) % 10)
+        jishuchild2.push(parseInt(arrJiShu2[h]) / 10)
+      }
+
+      var sumJiShu = 0 // 奇数位*2 < 9 的数组之和
+      var sumOuShu = 0 // 偶数位数组之和
+      var sumJiShuChild1 = 0 // 奇数位*2 >9 的分割之后的数组个位数之和
+      var sumJiShuChild2 = 0 // 奇数位*2 >9 的分割之后的数组十位数之和
+      var sumTotal = 0
+      for (var m = 0; m < arrJiShu.length; m++) {
+        sumJiShu = sumJiShu + parseInt(arrJiShu[m])
+      }
+
+      for (var n = 0; n < arrOuShu.length; n++) {
+        sumOuShu = sumOuShu + parseInt(arrOuShu[n])
+      }
+
+      for (var p = 0; p < jishuchild1.length; p++) {
+        sumJiShuChild1 = sumJiShuChild1 + parseInt(jishuchild1[p])
+        sumJiShuChild2 = sumJiShuChild2 + parseInt(jishuchild2[p])
+      }
+      // 计算总和
+      sumTotal =
+        parseInt(sumJiShu) +
+        parseInt(sumOuShu) +
+        parseInt(sumJiShuChild1) +
+        parseInt(sumJiShuChild2)
+
+      // 计算Luhm值
+      var k = parseInt(sumTotal) % 10 === 0 ? 10 : parseInt(sumTotal) % 10
+      var luhm = 10 - k
+      console.log('isbank', lastNum === luhm)
+      console.log(lastNum)
+      console.log(luhm)
+      if (Number(lastNum) === luhm) {
+        return true
+      } else {
+        return false
+      }
     }
   }
 }

@@ -30,16 +30,15 @@
         </div>
       </div> -->
       <div>
-        <groupCheckBox ref="groupLimit" :systems="copyCorpPackRoleList" :isEdit="true"></groupCheckBox>
+        <GroupCheckBox ref="groupLimit" :systems="copyCorpPackRoleList" :isEdit="true"></GroupCheckBox>
       </div>
     </div>
   </div>
 </template>
 <script>
 import { mapActions, mapGetters } from 'vuex'
-import { getCookie } from '@/utils/cookies'
 import {ArrDistinct} from '@/utils/util'
-import groupCheckBox from './groupCheckBox'
+import GroupCheckBox from '@/components/GroupCheckBox'
 export default {
   props: {
     isAdd: {
@@ -60,7 +59,7 @@ export default {
           obj: {}
         }
       ],
-      accountList: getCookie('accountList') || [],
+      accountList: this.getCookie('accountList') || [],
       indeterminate: {
         accountIndeterminate: true
       },
@@ -73,7 +72,7 @@ export default {
     }
   },
   components: {
-    groupCheckBox
+    GroupCheckBox
   },
   computed: {
     ...mapGetters({
@@ -142,7 +141,7 @@ export default {
           appAccountIds: this.checkAllGroup.accountCheckAllGroup
         }
       } else {
-        this.$Message.info('至少选择一个公众号和一个坐席权限')
+        this.$Message.error('至少选择一个公众号和一个坐席权限')
         return false
       }
     },

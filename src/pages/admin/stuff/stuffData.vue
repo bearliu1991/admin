@@ -34,7 +34,7 @@
     <Modal :title="modalTitle" v-model="showModal" class-name="self-center-modal">
         <div v-html="modalCont"></div>
         <div slot="footer">
-          <Button type="primary" @click.stop="modalConfirm">确定</Button>
+          <Button type="primary" @click.stop="modalConfirm">{{confirmCont}}</Button>
           <Button type="ghost" @click.stop="showModal = false">取消</Button>
         </div>
     </Modal>
@@ -81,7 +81,8 @@ export default {
       curUserList: [],
       curUserDepthList: [],
       weCodeData: {},
-      isModify: false
+      isModify: false,
+      confirmCont: '确定'
     }
   },
   computed: {
@@ -91,7 +92,8 @@ export default {
       fitlerName: 'stuff/getFitlerName',
       selectRows: 'stuff/getSelectRows',
       isTop: 'stuff/getIsTop',
-      apartCount: 'stuff/getApartCount'
+      apartCount: 'stuff/getApartCount',
+      saveloginData: 'survey/getSaveloginCompany'
     })
   },
   created() {
@@ -102,9 +104,6 @@ export default {
     // 获取用户列表
     this._BUS.$on('getUsers', (key) => {
       this.getStuffData(key)
-    })
-    this._BUS.$on('addUser', () => {
-      this.handle('addUser')
     })
     this._BUS.$on('showFilter', (param) => {
       this.showFilter(param)
@@ -165,6 +164,7 @@ export default {
             identity: 'identity',
             joinStatus: 'joinStatus',
             addTime: 'addTime',
+            createTime: 'createTime',
             seatStatus: 'seatStatus',
             deptId: 'deptId',
             sex: 'sex',
@@ -178,6 +178,7 @@ export default {
             accountNickName: 'accountNickName'
           }
           this._BUS.$emit('tableLoading', false)
+          this._BUS.$emit('setNotChoose')
           if (res.code === 1) {
             this.pageTotal = res.data.totalCount
             // 更新树结构中员工数显示
@@ -191,6 +192,7 @@ export default {
               this.datas = []
             }
           } else {
+            this.$Message.error(res.message)
             this.dataSatau = 3
           }
         })
@@ -198,26 +200,24 @@ export default {
     },
     getFilterOption() {
       let param = {
-        "itemKey": "",
-        "itemPv": "",
-        "itemValue": "",
-        "limit": 20,
-        "offset": 0,
-        "order": "DESC",
-        "sort": ""
+        "itemKey": ""
       }
       let param1 = this.deepCopy(param)
       let param2 = this.deepCopy(param)
-      param1.itemKey = 'EEMNG_eeStatus'
-      param2.itemKey = 'EEMNG_seatStatus'
-      this.searchOption(param1).then((res) => {
+      param1.itemKey = 'XDS_EEMNG_EESTATUS'
+      param2.itemKey = 'XDS_EEMNG_SEAT_STATUS'
+      this.queryTItemValueByPager(param1).then((res) => {
         if (res.code === 1 && res.data) {
-          this.stuffStatus = res.data.records
+          let arr = res.data ? res.data : []
+          arr.unshift({itemKey: "XDS_EEMNG_EESTATUS", itemValue: null, itemName: "全部",})
+          this.stuffStatus = arr
         }
       })
-      this.searchOption(param2).then((res) => {
+      this.queryTItemValueByPager(param2).then((res) => {
         if (res.code === 1 && res.data) {
-          this.zuoxiStatus = res.data.records
+          let arr = res.data ? res.data : []
+          arr.unshift({itemKey: "XDS_EEMNG_SEAT_STATUS", itemValue: null, itemName: "全部",})
+          this.zuoxiStatus = arr
         }
       })
     },
@@ -298,7 +298,7 @@ export default {
             return item.deptId
           })
         } else {
-          this.$Message.info('请至少选择一个用户')
+          this.$Message.error('请至少选择一个用户')
           return false
         }
       }
@@ -322,6 +322,24 @@ export default {
           this.clear()
         }
       })
+    },
+    valAddUser() {
+      this.isAddUserAvail().then((res) => {
+        if (res.code === 1) {
+          this.drawer = true
+          this.nowCompo = 'AddUser'
+          this.drawerTitle = "添加员工"
+        } else if (res.code === 3539) {
+          this.showModal = true
+          this.modalTitle = '员工数量不足'
+          this.modalCont = `当前套餐版本最多支持${this.saveloginData.employeeNum || 0}个员工，如需更多服务请升级`
+          this.confirmCont = '立即升级'
+          this.curProcess = 'addUser'
+        } else {
+          this.$Message.error(res.message)
+        }
+      })
+      return true
     },
     clear(key) {
       this.showModal = false
@@ -355,6 +373,10 @@ export default {
         case 'delApart':
           this.delCurApart()
           break
+        case 'addUser':
+          this.showModal = false
+          this.upgrade()
+          break
         default:
           break
       }
@@ -366,14 +388,14 @@ export default {
         case 'show':
           this.drawer = true
           this.nowCompo = 'UserDetail'
-          this.drawerTitle = '员工详细'
+          this.drawerTitle = '员工详情'
           this.userId = param
           this.isModify = false
           break
         case 'modify':
           this.drawer = true
           this.nowCompo = 'UserDetail'
-          this.drawerTitle = '员工详细'
+          this.drawerTitle = '员工详情'
           this.userId = param
           this.isModify = true
           break
@@ -418,9 +440,7 @@ export default {
           this.nowCompo = ''
           break
         case 'addUser':
-          this.drawer = true
-          this.nowCompo = 'AddUser'
-          this.drawerTitle = "添加员工"
+          this.valAddUser()
           break
         case 'askFor':
           this.nowCompo = 'WeCode'
@@ -430,12 +450,12 @@ export default {
           break
         case 'addApart':
           if (this.currApart.flag && this.currApart.flag.match(/-/g) && (this.currApart.flag.match(/-/g).length > 3)) {
-            this.$Message.warning('抱歉，子部门最多只能有4层')
+            this.$Message.error('抱歉，子部门最多只能有4层')
             return false
           }
           this._BUS.$emit('apartCount')
           if (this.apartCount > 100) {
-            this.$Message.warning('抱歉，部门总数最多只能100个')
+            this.$Message.error('抱歉，部门总数最多只能100个')
             return false
           }
           this.drawerTitle = "添加子部门"
@@ -445,7 +465,7 @@ export default {
           break
         case 'modifyApart':
           if (this.currApart.isRoot) {
-            this.$Message.warning('根部门不能修改！')
+            this.$Message.error('根部门不能修改！')
             return false
           }
           this.drawerTitle = "修改部门"
@@ -460,19 +480,19 @@ export default {
         case 'delApart':
           this.curProcess = 'delApart'
           if (this.currApart.isRoot) {
-            this.$Message.warning('根部门不能删除！')
+            this.$Message.error('根部门不能删除！')
             return false
           }
           if (this.currApart.children && this.currApart.children.length) {
-            this.$Message.warning(Const.delWithChild)
+            this.$Message.error(Const.delWithChild)
             return false
           } else if (this.datas.length) {
-            this.$Message.warning(Const.delWithUsers)
+            this.$Message.error(Const.delWithUsers)
             return false
           } else {
             this.showModal = true
             title = "删除"
-            cont = "您正在删除" + this.currApart.title + ",确定删除吗？"
+            cont = "确定删除 " + this.currApart.title + " 吗？"
           }
           break
         default:
@@ -481,6 +501,7 @@ export default {
       if (this.showModal) {
         this.modalTitle = title
         this.modalCont = cont
+        this.confirmCont = '确定'
       }
       this.bodyClick()
     }

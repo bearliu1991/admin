@@ -1,7 +1,7 @@
 <template>
   <div id="seats">
     <scroll-bar>
-      <data-loading @reload="reload" :data-satau='beginIntoLoading'>
+      <data-loading @reload="reload" :data-satau='loadingStatu'>
         <div class="scroll-common-content">
           <div class="seats-main">
             <div class="common-title">
@@ -44,9 +44,8 @@
                 </div>
               </div>
               <div class="table-list">
-                <data-loading :data-satau='loadingStatu'>
-                  <Table ref="table" @on-row-click="currentChange" @on-selection-change="selectionChange" :highlight-row="true" :columns="columns" :data="seatListData"></Table>
-                </data-loading>
+                <Table ref="table" :loading="beginIntoLoading === 1" @on-row-click="currentChange" @on-selection-change="selectionChange" :highlight-row="true" :columns="columns" :data="seatListData">
+                </Table>
               </div>
               <div class="page-batch">
                 <div class="batch">
@@ -77,11 +76,7 @@
               坐席状态
             </div>
             <div class="content-right">
-              <Button class="btn-item" :class="{active:seatsStatuIdx==0}" @click="selectSeatsStatu(0)" size="small" type="ghost">全部</Button>
-              <Button class="btn-item" :class="{active:seatsStatuIdx==1}" @click="selectSeatsStatu(1)" size="small" type="ghost">正常</Button>
-              <Button class="btn-item" :class="{active:seatsStatuIdx==4}" @click="selectSeatsStatu(4)" size="small" type="ghost">未分配</Button>
-              <Button class="btn-item" :class="{active:seatsStatuIdx==2}" @click="selectSeatsStatu(2)" size="small" type="ghost">停用</Button>
-              <Button class="btn-item" :class="{active:seatsStatuIdx==3}" @click="selectSeatsStatu(3)" size="small" type="ghost">禁用</Button>
+              <Button class="btn-item" v-for="(item, index) in seatStatus" :key="index" :class="{active:seatsStatuIdx==index}" @click="selectSeatsStatu(index, item.itemValue)" size="small" type="ghost">{{item.itemName}}</Button>
             </div>
           </div>
           <div class="content-item">
@@ -89,10 +84,7 @@
               在线状态
             </div>
             <div class="content-right">
-              <Button class="btn-item" :class="{active:onlineStatuIdx==0}" @click="selectOnlineStatu(0)" size="small" type="ghost">全部</Button>
-              <Button class="btn-item" :class="{active:onlineStatuIdx==1}" @click="selectOnlineStatu(1)" size="small" type="ghost">在线</Button>
-              <Button class="btn-item" :class="{active:onlineStatuIdx==2}" @click="selectOnlineStatu(2)" size="small" type="ghost">离线</Button>
-              <Button class="btn-item" :class="{active:onlineStatuIdx==3}" @click="selectOnlineStatu(3)" size="small" type="ghost">忙碌</Button>
+              <Button class="btn-item" v-for="(item, index) in onlineStatus" :key="index" :class="{active:onlineStatuIdx==index}" @click="selectOnlineStatu(index ,item.itemValue)" size="small" type="ghost">{{item.itemName}}</Button>
             </div>
           </div>
         </div>
@@ -104,9 +96,17 @@
         </div>
       </div>
     </drawer>
-    <drawer v-model="showBatchLimit" titleTips="批量设置权限">
+    <drawer :isScroll="false" v-model="showBatchLimit" titleTips="批量设置权限">
       <div class="batch-limit-wrapper" slot="content">
-        <seatsLimit ref="seatsLimit" :isAdd="true"></seatsLimit>
+        <div class="noseatDate" v-show="accountList.length<=0">
+          <div class="item img"><img src="@/assets/images/admin/icon.png" alt=""></div>
+          <div class="item tip">您还没有绑定公众号</div>
+          <div class="item btn"><Button type="primary" @click="addAccount">添加公众号</Button></div>
+        </div>
+        <scroll-bar v-show="accountList.length>0">
+          <seatsLimit ref="seatsLimit" :isAdd="true"></seatsLimit>
+        </scroll-bar>
+        <!-- <seatsLimit ref="seatsLimit" :isAdd="true"></seatsLimit> -->
       </div>
       <div slot="footer" class="footer-wrapper">
         <Button class="footer-btn" @click="saveSeatsInfo" type="primary">保存</Button>
@@ -131,25 +131,27 @@ import {
   getSeatList,
   getSeatDetail,
   updateSeatStatus,
-  updateSeatAuthByBatch
+  updateSeatAuthByBatch,
+  getPublicAccountList
 } from '@/api/query'
-import { setCookie, getCookie } from '@/utils/cookies'
 import { mapActions, mapGetters } from 'vuex'
 import noSeats from './noSeats'
 import addSeats from './addSeats'
 import seatsInfo from './seatsInfo'
 import editSeats from './editSeats'
 import seatsLimit from './seatsLimit'
+import ConstCommon from '@/utils/const'
 export default {
   data() {
     return {
+      tencentRules: ConstCommon.tencentRules,
       updateAuthBatchParams: {
         seatIds: null,
         appAccountIds: null,
         authIds: null
       },
+      accountList: this.getCookie('accountList') || [],
       beginIntoLoading: 1,
-      beginIntoCount: 0,
       ids: '',
       operationStatus: '',
       createSeat: {},
@@ -424,10 +426,24 @@ export default {
           }
         }
       ],
-      seatListData: []
+      seatListData: [],
+      seatStatus: [
+        {
+          itemValue: null,
+          itemName: '全部'
+        }
+      ],
+      onlineStatus: [
+        {
+          itemValue: null,
+          itemName: '全部'
+        }
+      ]
     }
   },
   created() {
+    this.getItemValue('XDS_SEAT_STATUS')
+    this.getItemValue('XDS_SEAT_ON_LINE_STATUS')
     this.$root.Bus.$on('refreshList', () => {
       this.getSeatList()
     })
@@ -435,7 +451,14 @@ export default {
       this.$refs.table.clearCurrentRow()
     })
     this.deepColumns = this.columns.slice()
-    this.checkSettingArr(this.deepColumns)
+    let chooseObj =
+      localStorage && JSON.parse(localStorage.getItem(this.installName('seat')))
+    if (chooseObj) {
+      this.setting = chooseObj
+      this.settingChange()
+    } else {
+      this.checkSettingArr(this.deepColumns)
+    }
     this.getIntoSeatList()
   },
   computed: {
@@ -443,12 +466,30 @@ export default {
       corpInfoData: 'survey/getCorpInfo'
     })
   },
-  mounted() {},
+  mounted() {
+
+  },
   methods: {
     openModal(name, ids, operationStatus) {
       this.ids = ids
       this.operationStatus = operationStatus
       this.selectAction(name)
+    },
+    // 获取公众号列表
+    getPublicAccountList(name) {
+      let params = {
+        corpId: this.getCookie('currentCorp').applyId
+      }
+      getPublicAccountList(params).then(data => {
+        if (data.code === 1) {
+          let tencentData = data.data
+          let cookieTencentData = this.transformData(tencentData, this.tencentRules)
+          this.setCookie('accountList', cookieTencentData || [])
+          this.$refs[name].showDrawer()
+        } else {
+          this.$Message.error('获取公众号列表失败')
+        }
+      })
     },
     editInfoSeat(id, name, val) {
       this.getSeatList()
@@ -457,11 +498,15 @@ export default {
     updateSeatAuthByBatch() {
       updateSeatAuthByBatch(this.updateAuthBatchParams).then(data => {
         if (data.code === 1) {
+          this.single = false
           this.showBatchLimit = false
           this.$Message.success('保存成功')
           this.getSeatList()
         }
       })
+    },
+    addAccount() {
+      this.$router.push({ name: 'tencentManage' })
     },
     updateSeatStatus(params) {
       // let params = {
@@ -476,9 +521,10 @@ export default {
         .then(data => {
           if (data.code === 1) {
             this.getSeatList()
-            if (params.ids.length === 1) {
+            if (params.ids.length === 1 && this.operationStatus !== 'BATCH_BLOCK_UP') {
               this.getSeatDetail(params.ids[0])
             }
+            this.single = false
             switch (this.operationStatus) {
               case 'ACTIVE':
                 this.$Message.success('启用坐席成功')
@@ -490,45 +536,72 @@ export default {
                 this.$Message.success('解除分配成功')
                 break
               case 'BATCH_BLOCK_UP':
+                
                 this.$Message.success('批量停用坐席成功')
                 break
               default:
                 break
             }
           } else {
-            this.$Message.warning(data.message)
+            this.$Message.error(data.message)
           }
         })
         .catch(() => {
-          this.$Message.warning('操作超时')
+          this.$Message.error('操作超时')
         })
     },
     getSeatDetail(param, name, val) {
       let params = {
         id: param
       }
-      getSeatDetail(params)
-        .then(data => {
-          if (data.code === 1) {
-            setCookie('seatsInfo', data.data)
-            this.setSeatsInfo(data.data)
-            if (val) {
-              this.tabsVal = '1'
-              this.editTabsVal = val
-            }
-            if (name) {
-              this.$refs[name].showDrawer()
-            }
-          } else {
-            this.$Message.warning('获取详情失败')
+      getSeatDetail(params).then(data => {
+        if (data.code === 1) {
+          this.setCookie('seatsInfo', data.data)
+          this.setSeatsInfo(data.data)
+          if (val) {
+            this.tabsVal = '1'
+            this.editTabsVal = val
           }
-        })
-        .catch(() => {
-          this.$Message.warning('获取详情失败')
-        })
+          if (name) {
+            return name
+          }
+        } else {
+          this.$Message.error('获取详情失败')
+        }
+      }).then((data) => {
+        if (data) {
+          this.getPublicAccountList(data)
+        }
+      }).catch(() => {
+        this.$Message.error('获取详情失败')
+      })
+    },
+    // 获取坐席筛选的状态
+    getItemValue(key) {
+      let obj = {
+        itemKey: key
+      }
+      this.queryTItemValueByPager(obj).then(data => {
+        switch (data.code) {
+          case 1:
+            switch (key) {
+              case 'XDS_SEAT_STATUS':
+                this.seatStatus = this.seatStatus.concat(data.data.sort(this.sortBy('itemIdx')))
+                break
+              case 'XDS_SEAT_ON_LINE_STATUS':
+                this.onlineStatus = this.onlineStatus.concat(data.data.sort(this.sortBy('itemIdx')))
+                break
+              default:
+                break
+            }
+            break
+
+          default:
+            break
+        }
+      })
     },
     getIntoSeatList() {
-      this.loadingStatu = 1
       let params = {
         offset: 0,
         limit: 10
@@ -553,7 +626,7 @@ export default {
             id: data.data.id,
             seatNo: data.data.seatNo
           }
-          this.$refs.addSeats.showDrawer()
+          this.getPublicAccountList('addSeats')
         } else {
           this.content = `当前套餐版本最多支持${
             this.corpInfoData.packSeatNum
@@ -566,11 +639,7 @@ export default {
       this.getSeatList()
     },
     getSeatList() {
-      if (this.beginIntoCount === 0) {
-        this.beginIntoLoading = 1
-      }
-      this.beginIntoCount++
-      this.loadingStatu = 1
+      this.beginIntoLoading = 1
       getSeatList(this.searchParams)
         .then(data => {
           if (data.code === 1) {
@@ -616,6 +685,8 @@ export default {
         }
       }
       this.$set(this, 'columns', arr)
+      let key = this.installName('seat')
+      localStorage && localStorage.setItem(key, JSON.stringify(this.setting))
     },
     checkSettingArr(arr) {
       arr.forEach(item => {
@@ -642,7 +713,7 @@ export default {
       this.tabsVal = '1'
       setTimeout(() => {
         this.tabsVal = val
-        this.$refs.editSeats.showDrawer()
+        this.getPublicAccountList('editSeats')
       }, 1)
     },
     currentChange(currentRow, oldCurrentRow) {
@@ -655,8 +726,8 @@ export default {
       this.getSeatList()
     },
     upgrade() {
-      let corpId = getCookie('currentCorp').applyId
-      let corpName = getCookie('currentCorp').corpName
+      let corpId = this.getCookie('currentCorp').applyId
+      let corpName = this.getCookie('currentCorp').corpName
       let obj = {
         corpId: corpId,
         corpName: corpName
@@ -671,7 +742,7 @@ export default {
       //   (this.intoSeatTotalCount > 0 && this.intoList.length <= 0) ||
       //   this.intoSeatTotalCount < this.corpInfoData.packSeatNum
       // ) {
-      setCookie('seatsInfo', {})
+      this.setCookie('seatsInfo', {})
       this.setSeatsInfo({})
       this.saveSeatNo()
       // } else {
@@ -703,7 +774,7 @@ export default {
     },
     batchStop() {
       if (this.selectListData.length === 0) {
-        this.$Message.info('至少选择一项')
+        this.$Message.error('至少选择一项')
       } else {
         this.operationStatus = 'BATCH_BLOCK_UP'
         let arr = []
@@ -716,7 +787,7 @@ export default {
     },
     batchSetLimit() {
       if (this.selectListData.length === 0) {
-        this.$Message.info('至少选择一项')
+        this.$Message.error('至少选择一项')
       } else {
         this.setSeatsInfo({})
         this.showBatchLimit = true
@@ -731,14 +802,11 @@ export default {
     handleFilter() {
       this.showFilter = true
     },
-    selectSeatsStatu(idx) {
+    selectSeatsStatu(idx, value) {
       this.seatsStatuIdx = idx
-      this.searchParams.status = idx
-      if (this.searchParams.status === 0) {
-        this.searchParams.status = null
-      }
+      this.searchParams.status = value
     },
-    selectOnlineStatu(idx) {
+    selectOnlineStatu(idx, value) {
       this.onlineStatuIdx = idx
     },
     filterComfirm() {
@@ -755,6 +823,12 @@ export default {
         this.single = false
       }
       this.selectListData = arr
+    },
+    // 公用方法，组装localStorage中存储的列表头显示数据的名称，为“用户id_公司id_页面名称”
+    installName(pageName) {
+      let userId = this.getCookie('token').userId
+      let applyId = this.getCookie('currentCorp').applyId
+      return userId + '_' + applyId + '_' + pageName
     },
     ...mapActions({
       setSeatsInfo: 'seats/setSeatsInfo',

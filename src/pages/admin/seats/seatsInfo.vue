@@ -103,7 +103,7 @@
                     </div>
                   </div> -->
                   <div class="list-name">
-                    <groupCheckBox :systems="copyCorpPackRoleList"></groupCheckBox>
+                    <GroupCheckBox :systems="copyCorpPackRoleList"></GroupCheckBox>
                   </div>
                 </div>
               </scroll-bar>
@@ -162,8 +162,7 @@
 </template>
 <script>
 import {mapGetters} from 'vuex'
-import { getCookie } from '@/utils/cookies'
-import groupCheckBox from '@/pages/admin/seats/groupCheckBox'
+import GroupCheckBox from '@/components/GroupCheckBox'
 import UploadImg from '@/components/UploadImg'
 export default {
   props: {
@@ -177,7 +176,7 @@ export default {
       heghtLightStatu: true,
       TabsVal: '1',
       showSeatsInfo: false,
-      accountList: getCookie('accountList') || [],
+      accountList: this.getCookie('accountList') || [],
       copyCorpPackRoleList: []
     }
   },
@@ -260,7 +259,7 @@ export default {
     stopSeats() {}
   },
   components: {
-    groupCheckBox,
+    GroupCheckBox,
     UploadImg
   }
 }

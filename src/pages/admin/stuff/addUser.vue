@@ -10,7 +10,7 @@
     <div class="component">
         <data-loading :dataSatau="dataSatau">
             <AddInput v-show="curId === 0" ref="addInput" :height='height'></AddInput>
-            <RightSet :systems="systems" :isEdit="true" v-show="curId === 1" ref="rightSet"></RightSet>
+            <RightSet :systems="systems" :isEdit="true" class="right_set" :style="{height: height + 'px'}" v-show="curId === 1" ref="rightSet"></RightSet>
             <WeCode v-show="curId === 2" ref="weCode" :datas="weCodeData" :curApart="curApart">
                 <p><span class="icon suc_color">&#xe688;</span> 员工创建成功!</p>
                 <p>将二维码截图或保存后发送给员工,员工可用微信扫码加入企业</p>
@@ -44,7 +44,8 @@ export default {
       inviteCode: null,
       inputVals: null,
       weCodeData: {},
-      height: 0
+      height: 0,
+      isChatRight: false
     }
   },
   created() {
@@ -95,6 +96,13 @@ export default {
     getGroupData() {
         this.ajaxData('PC_WEB_ADMIN', 0)
         this.ajaxData('PC_WEB_CHAT', 1)
+        // 如果坐席权限没开，则聊天权限不能选择
+        if (this.isChatRight) {
+            this.systems.length === 1 && this.systems.push({name: '聊天管理系统', obj: {}})
+            this.ajaxData('PC_WEB_CHAT', 1)
+        } else {
+            this.systems = this.systems.slice(0, 1)
+        }
     },
     goNext() {
         if (this.curId === 0) {
@@ -102,21 +110,25 @@ export default {
             if (!this.inputVals) {
                 return false
             }
-            this.dataSatau = 1
-            this.isAddUserAvail().then((res) => {
-                this.dataSatau = 2
-                if (res.code === 1) {
-                    this.curId = 1
-                    this.getGroupData()
-                } else {
-                    this.$Message.error(res.message)
-                }
-            })
+            this.isChatRight = !!this.inputVals.seatNo
+            this.curId = 1
+            this.getGroupData()
+            // this.isAddUserAvail().then((res) => {
+            //     this.dataSatau = 2
+            //     if (res.code === 1) {
+            //         this.curId = 1
+            //         this.getGroupData()
+            //     } else if (res.code === 3539) {
+            //         this.$Message.error(`当前套餐版本最多支持${this.pageTotal}个员工，如需更多服务请升级`)
+            //     } else {
+            //         this.$Message.error(res.message)
+            //     }
+            // })
         } else if (this.curId === 1) {
             let obj = this.inputVals
             let ids = this.$refs['rightSet'].getSysId()
             if (!ids || !ids.length) {
-                this.$Message.warning('请至少选择一个权限')
+                this.$Message.error('请至少选择一个权限')
                 return false
             }
             let obj1 = {'addRoleIds': ids, deptId: this.curApart.id}
@@ -138,7 +150,7 @@ export default {
                         }
                     })
                 } else {
-                    this.$Message.warning(res.message)
+                    this.$Message.error(res.message)
                     return false
                 }
             })
@@ -166,4 +178,6 @@ export default {
             padb(20px)
     .component
         height:80%
+        .right_set
+            overflow-y: auto
 </style>

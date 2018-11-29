@@ -3,13 +3,14 @@ import Request from '@/api/request'
 import flyRequest from '@/api/flyRequest'
 import * as Cookies from '@/utils/cookies'
 import * as Utils from '@/utils/util'
-// import { Function } from 'core-js'
+const ENV_URL = process.env.MOBILE_BASE_URL
+
 export default {
   install(Vue, options) {
     Request()
     flyRequest()
-    Vue.prototype.constRedirectUrl = 'http://xingke100.com/authorization'
-    Vue.prototype.qrcodeUrl = 'http://xk.xingke100.com/mobile/pay'
+    Vue.prototype.constRedirectUrl = ENV_URL + '/authorization'
+    Vue.prototype.qrcodeUrl = ENV_URL + '/mobile/pay'
     Vue.prototype.getUploadUrl = 'http://fdfs.xingke100.com/'
     Vue.prototype.ltIE10 = function (data) {
       let ie = navigator.appVersion.match(/MSIE\s(.+?);/i) || [0, 100000]
@@ -25,33 +26,49 @@ export default {
     Vue.prototype.deepCopy = function (data) {
       return JSON.parse(JSON.stringify(data))
     }
-    // 将分换算成元并保留两位小时
+    // 将分换算成元并保留两位小数
     Vue.prototype.insertPoint = function (str) {
-      str = str.toString()
-      let len = str.length - 2
-      let newStr = str.substring(0, len) + '.' + str.substring(len, str.length)
+      // str = str.toString()
+      // if (str.length === 1) {
+      //   str = '00' + str
+      // } else if (str.length === 2) {
+      //   str = '0' + str
+      // }
+      // let len = str.length - 2
+      // let newStr = str.substring(0, len) + '.' + str.substring(len, str.length)
+      let newStr = (str / 100).toFixed(2)
       return newStr
     }
     Vue.prototype.bodyClick = function (data) {
       return document.body.click()
     }
     // 设置cookie
-    Vue.prototype.setCookie = function (cname, cvalue, exdays) {
-      let d = new Date()
-      d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000))
-      let expires = "expires=" + d.toUTCString()
-      document.cookie = cname + "=" + cvalue + "; " + expires + ';'
-    }
-    Vue.prototype.getCookie = function (cname) {
-      let name = cname + "="
-      let ca = document.cookie.split(';')
-      for (let i = 0; i < ca.length; i++) {
-        let c = ca[i]
-        while (c.charAt(0) === ' ') c = c.substring(1)
-        if (c.indexOf(name) !== -1) return c.substring(name.length, c.length)
-      }
-      return ""
-    }
+    // Vue.prototype.setCookie = function (cname, cvalue, exdays) {
+    //   let d = new Date()
+    //   d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000))
+    //   let expires = "expires=" + d.toUTCString()
+    //   document.cookie = cname + "=" + cvalue + "; " + expires + ';'
+    // }
+    // Vue.prototype.getCookie = function (cname) {
+    //   let name = cname + "="
+    //   let ca = document.cookie.split(';')
+    //   for (let i = 0; i < ca.length; i++) {
+    //     let c = ca[i]
+    //     while (c.charAt(0) === ' ') c = c.substring(1)
+    //     if (c.indexOf(name) !== -1) return c.substring(name.length, c.length)
+    //   }
+    //   return ""
+    // }
+    // 删除所有cookie
+    // Vue.prototype.clearCookie = function () {
+    //   let keys = document.cookie.match(/[^ =;]+(?=\=)/g)
+    //   console.log(keys)
+    //   if (keys) {
+    //     for (let i = keys.length; i--;) {
+    //       document.cookie = keys[i] + '=0;expires=' + new Date(0).toUTCString()
+    //     }
+    //   }
+    // }
     // 两个父子关系的数组去重
     Vue.prototype.ArrDistinct = function (arr1, arr2) {
       let result = arr1.filter(function (item1) {
@@ -67,7 +84,7 @@ export default {
       // rules：需要将相关将属性转换的规则；{ 当前属性名：改变后属性名}
       // subobj： 树的子节点属性名
       // reverse: 翻转将属性转换的规则
-      // 
+      //
       let reverseRules = {}
       if (reverse) {
         for (let key in rules) {
@@ -98,6 +115,57 @@ export default {
       }
       return transform(obj, rules, subobj)
     }
+    // 将有父子关系的数据转换成树形结构数据
+    Vue.prototype.toTreeData = function (data, attributes) {
+      let resData = data
+      let tree = []
+      for (let i = 0; i < resData.length; i++) {
+        if (resData[i].resParentId === attributes.rootId) {
+          let obj = {
+            id: resData[i][attributes.id],
+            name: resData[i][attributes.name],
+            urlName: resData[i][attributes.urlName],
+            menuLevel: resData[i][attributes.menuLevel],
+            menuPosition: resData[i][attributes.menuPosition],
+            children: []
+          }
+          tree.push(obj)
+          resData.splice(i, 1)
+          i--
+        }
+      }
+      run(tree)
+
+      function run(chiArr) {
+        if (resData.length !== 0) {
+          for (let i = 0; i < chiArr.length; i++) {
+            for (let j = 0; j < resData.length; j++) {
+              if (chiArr[i].id === resData[j][attributes.parentId]) {
+                let obj = {
+                  id: resData[i][attributes.id],
+                  name: resData[i][attributes.name],
+                  urlName: resData[i][attributes.urlName],
+                  menuLevel: resData[i][attributes.menuLevel],
+                  menuPosition: resData[i][attributes.menuPosition],
+                  children: []
+                }
+                chiArr[i].children.push(obj)
+                resData.splice(j, 1)
+                j--
+              }
+            }
+            run(chiArr[i].children)
+          }
+        }
+      }
+      return tree
+    }
+    // 对一个对象数组按照对象某个属性进行排序
+    Vue.prototype.sortBy = function (str) {
+      return function (obj1, obj2) {
+        return obj1[str] > obj2[str]
+      }
+    }
     // 每隔三位小数加逗号
     Vue.prototype.addComma = function (num) {
       num = (num || 0).toString()
@@ -111,9 +179,9 @@ export default {
       }
       return result
     }
-    Vue.prototype.removeCookie = function (name) {
-      this.$cookies.remove(name)
-    }
+    // Vue.prototype.removeCookie = function (name) {
+    //   this.$cookies.remove(name)
+    // }
     Vue.prototype.openMessage = (arg, fn) => {
       let html = ''
       if (!arg.bool) {

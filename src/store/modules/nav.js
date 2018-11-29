@@ -1,12 +1,17 @@
+import {getCookie} from '@/utils/cookies'
 const state = {
   collapsed: true,
   routerInfo: {},
-  secondMenu: []
+  secondMenu: {},
+  mainMenuList: getCookie('mainMenu'),
+  allSecondObj: getCookie('secondMenu')
 }
 const getters = {
   getCollapsed: state => state.collapsed,
   getRouterInfo: state => state.routerInfo,
-  getSecondMenu: state => state.secondMenu
+  getSecondMenu: state => state.secondMenu,
+  getAllSecondObj: state => state.allSecondObj,
+  getMainMenuList: state => state.mainMenuList
 }
 const mutations = {
   SET_COLLAPSED(state, collapsed) {
@@ -17,6 +22,12 @@ const mutations = {
   },
   SET_SECONDMENU(state, secondMenu) {
     state.secondMenu = secondMenu
+  },
+  SET_ALLSECONDOBJ(state, allSecondObj) {
+    state.allSecondObj = allSecondObj
+  },
+  SET_MAINMENULIST(state, mainMenuList) {
+    state.mainMenuList = mainMenuList
   }
 }
 const actions = {
@@ -29,7 +40,11 @@ const actions = {
   },
   setSecondMenu({commit}, secondMenu) {
     commit('SET_SECONDMENU', secondMenu)
-  }
+  },
+  setMenuList({commit}, obj) {
+    commit('SET_ALLSECONDOBJ', obj.allSecondObj)
+    commit('SET_MAINMENULIST', obj.mainMenuList)
+  },
 }
 
 export default {

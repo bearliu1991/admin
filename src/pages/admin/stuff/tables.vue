@@ -19,10 +19,10 @@
               </Poptip>
             </div>
           </div>
-          <div class="table">
-            <!-- <data-loading :dataSatau="dataSatau"> -->
+          <div class="table" style="height: 600px">
+            <ScrollBar>
               <Table ref="table" :loading="loading" @on-row-click="rowClick" :columns="columns" :data="datas" @on-selection-change="selectionChange"></Table>
-            <!-- </data-loading> -->
+            </ScrollBar>
           </div>
           <div class="common_pro">
             <div class="left_pro">
@@ -90,6 +90,9 @@
         }
       },
       created() {
+        this._BUS.$on('setNotChoose', () => {
+          this.isAllChoosed = false
+        })
         this._BUS.$on('tableLoading', (loadParam) => {
           loadParam && (this.loading = loadParam)
           if (!loadParam) {
@@ -116,6 +119,11 @@
         },
         pageSize() {
           this.getParams()
+        },
+        datas () {
+          this.$nextTick(() => {
+            this.$root.Bus.$emit('calcScrollHeight')
+          })
         }
       },
       methods: {
@@ -127,13 +135,7 @@
           this._BUS.$emit('getUsers')
         },
         addUser() {
-          this.isAddUserAvail().then((res) => {
-            if (res.code === 1) {
-              this._BUS.$emit('addUser')
-            } else {
-              this.$Message.error(res.message)
-            }
-          })
+          this._BUS.$emit('handle', 'addUser')
         },
         rowClick(val) {
           this._BUS.$emit('handle', 'show', val.eeId)
@@ -156,7 +158,6 @@
         setFilter() {
           this._BUS.$emit('showFilter', {nowCompo: "Filters", drawerTitle: '筛选'})
         },
-        
         setAllChoose() {
           this.isAllChoosed = !this.isAllChoosed
           this.$refs.table.selectAll(this.isAllChoosed)

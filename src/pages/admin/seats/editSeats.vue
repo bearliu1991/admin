@@ -43,7 +43,6 @@
 <script>
 import {mapActions, mapGetters} from 'vuex'
 import {updateSeatBaseInfo, updateSeatAuth, updateConditionalSeat} from '@/api/query'
-import { getCookie } from '@/utils/cookies'
 import addFirstStep from './addFirstStep'
 import seatsLimit from './seatsLimit'
 import customSeats from './customSeats'
@@ -59,7 +58,7 @@ export default {
       heghtLightStatu: true,
       showEditSeats: false,
       editTabsVal: '1',
-      accountList: getCookie('accountList') || [],
+      accountList: this.getCookie('accountList') || [],
       doneLoading: false
     }
   },
@@ -98,9 +97,9 @@ export default {
           this.$emit('editInfoSeat', this.seatsInfo.id, 'seatsInfo', this.editTabsVal)
           this.hideEditSeats()
         } else if (data.code === 5018) {
-          this.$Message.warning('修改失败,员工已有坐席')
+          this.$Message.error('修改失败,员工已有坐席')
         } else {
-          this.$Message.warning(data.message)
+          this.$Message.error(data.message)
         }
       }).catch(() => {
         this.doneLoading = false
@@ -114,7 +113,7 @@ export default {
           this.$emit('editInfoSeat', this.seatsInfo.id, 'seatsInfo', this.editTabsVal)
           this.hideEditSeats()
         } else {
-          this.$Message.warning(data.message)
+          this.$Message.error(data.message)
         }
       }).catch(() => {
         this.doneLoading = false
@@ -128,7 +127,7 @@ export default {
           this.$emit('editInfoSeat', this.seatsInfo.id, 'seatsInfo', this.editTabsVal)
           this.hideEditSeats()
         } else {
-          this.$Message.warning(data.message)
+          this.$Message.error(data.message)
         }
       }).catch(() => {
         this.doneLoading = false

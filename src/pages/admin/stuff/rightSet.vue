@@ -15,9 +15,9 @@
             </span>
             <!-- <Icon type="ios-circle-filled" v-if="calcAll(chid, true) === 2"
           @click.stop="setTopRight(2, indx)" v-show="isEdit"></Icon>
-          <Icon type="ios-minus" v-if="calcAll(chid, true) === 1" 
+          <Icon type="ios-minus" v-if="calcAll(chid, true) === 1"
           @click.stop="setTopRight(1, indx)" v-show="isEdit"></Icon>
-          <Icon type="ios-circle-outline" v-if="calcAll(chid, true) === 0" 
+          <Icon type="ios-circle-outline" v-if="calcAll(chid, true) === 0"
           @click.stop="setTopRight(0, indx)" v-show="isEdit"></Icon> -->
           <span class="limit-titile check-first-title">{{chid.name}}</span>
           </div>
@@ -27,23 +27,23 @@
             <FoldPanel :isFold="true">
               <div slot="title">
                 <div class="limit-check-second">
-                  <span class="ivu-checkbox ivu-checkbox-checked" v-if="calcAll(item.data) === 2" 
+                  <span class="ivu-checkbox ivu-checkbox-checked" v-if="calcAll(item.data) === 2"
                   @click.stop="setMiddleRight(2, key, indx)" v-show="isEdit">
                     <span class="ivu-checkbox-inner"></span>
                   </span>
-                  <span class="ivu-checkbox ivu-checkbox-indeterminate" v-if="calcAll(item.data) === 1" 
+                  <span class="ivu-checkbox ivu-checkbox-indeterminate" v-if="calcAll(item.data) === 1"
                   @click.stop="setMiddleRight(1, key, indx)" v-show="isEdit">
                     <span class="ivu-checkbox-inner"></span>
                   </span>
-                  <span class="ivu-checkbox" v-if="calcAll(item.data) === 0" 
+                  <span class="ivu-checkbox" v-if="calcAll(item.data) === 0"
                   @click.stop="setMiddleRight(0, key, indx)" v-show="isEdit">
                     <span class="ivu-checkbox-inner"></span>
                   </span>
-                  <!-- <Icon type="ios-circle-filled" v-if="calcAll(item.data) === 2" 
+                  <!-- <Icon type="ios-circle-filled" v-if="calcAll(item.data) === 2"
                   @click.stop="setMiddleRight(2, key, indx)" v-show="isEdit"></Icon>
-                  <Icon type="ios-minus" v-if="calcAll(item.data) === 1" 
+                  <Icon type="ios-minus" v-if="calcAll(item.data) === 1"
                   @click.stop="setMiddleRight(1, key, indx)" v-show="isEdit"></Icon>
-                  <Icon type="ios-circle-outline" v-if="calcAll(item.data) === 0" 
+                  <Icon type="ios-circle-outline" v-if="calcAll(item.data) === 0"
                   @click.stop="setMiddleRight(0, key, indx)" v-show="isEdit"></Icon> -->
                   <span class="limit-titile check-second-title">{{item.name}}</span>
                 </div>
@@ -119,12 +119,20 @@ export default {
   },
   methods: {
     init() {
+      for (let item of this.systems) {
+        !Object.keys(item.obj).length && (item.isSelect = false)
+      }
       this.totals = this.deepCopy(this.systems)
     },
     // 设置顶层权限
     setTopRight(num, indx) {
+      // debugger
       let arr = this.deepCopy(this.totals)
       let data = arr[indx].obj
+      if (!Object.keys(data).length) {
+        arr[indx].isSelect = !arr[indx].isSelect
+      }
+      !Object.keys(data) && (arr[indx].isSelect = !arr[indx].isSelect)
       for (let key of Object.keys(data)) {
         let obj = data[key].data
         for (let n of obj) {
@@ -168,6 +176,11 @@ export default {
       if (bool) {
         let allTrue = []
         let allFalse = []
+        if (!Object.keys(data.obj).length) {
+          if (data.isSelect) return 2
+          if (!data.isSelect) return 0
+        }
+        
         for (let key of Object.keys(data.obj)) {
           let obj = data.obj[key].data
           allTrue.push(
@@ -249,6 +262,7 @@ export default {
         margin-bottom 20px
         .limit-check-third
           .limit-check-item
+            center()
             display inline-block
             width 23%
             margin-top 20px

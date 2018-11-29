@@ -7,14 +7,14 @@
   </div>
 </template>
 
-<script> 
+<script>
 /* eslint-disable */
   export default {
     name: "webuploader",
     props: {
         url: {
             type: String,
-            default: function () { return "http://localhost:8091" }
+            default: function () { return "/" }
         },
         swfPath: {
             type: String,

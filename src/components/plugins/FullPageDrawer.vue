@@ -22,7 +22,6 @@
 </template>
 <script>
 import { mapActions } from 'vuex'
-import { removeCookie } from '@/utils/cookies'
 export default {
   name: 'fullPageDrawer',
   model: {
@@ -44,8 +43,10 @@ export default {
     }
   },
   mounted() {
-    this.$root.Bus.$on('hideFullPageDrawer', value => {
-      this.$emit('close', false)
+    this.$nextTick(() => {
+      this.$root.Bus.$on('hideFullPageDrawer', value => {
+        this.$emit('close', false)
+      })
     })
   },
   methods: {
@@ -62,14 +63,15 @@ export default {
     showDrawer(val) {
       if (!val) {
         if (this.isClearInfo) {
-          removeCookie('saveStepsData')
-          removeCookie('orderPayPrice')
-          removeCookie('companyParams')
-          removeCookie('orderId')
-          removeCookie('corpId')
-          removeCookie('isCreatCompany')
-          removeCookie('corpName')
-          removeCookie('nextOrderStep')
+          this.removeCookie('saveStepsData')
+          this.removeCookie('orderPayPrice')
+          this.removeCookie('companyParams')
+          this.removeCookie('orderId')
+          this.removeCookie('status')
+          this.removeCookie('corpId')
+          this.removeCookie('isCreatCompany')
+          this.removeCookie('corpName')
+          this.removeCookie('nextOrderStep')
         }
         this.setOverStatu(1)
         this.setIsFullPage(1)
@@ -79,7 +81,7 @@ export default {
     }
   },
   beforeDestroy() {
-    this.$root.Bus.$off('hideFullPageDrawer')
+    // this.$root.Bus.$off('hideFullPageDrawer')
   }
 }
 </script>

@@ -14,7 +14,7 @@ export default {
     url: {
       type: String,
       default: function() {
-        return 'http://localhost:8091'
+        return ''
       }
     },
     swfPath: {

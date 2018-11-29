@@ -1,5 +1,6 @@
 <template>
   <div id="payList">
+    <p class="pay_title"><Icon type="android-time"></Icon> 支付单号记录</p>
     <Table :columns="columns" :data="payList"></Table>
     <SelfModal v-model="showPop" :zIndex="showPop && '0'" v-if="showPop">
       <div class="modal_cont">
@@ -11,7 +12,7 @@
           <Col class="first_col">{{key}}</Col>
           <Col class="sec_col">
             <span v-if="key !== '打款凭证'">{{item}}</span>
-            <ImgEnlarge v-if="key === '打款凭证'" :imgUrl="item"></ImgEnlarge>
+            <ImgEnlarge v-if="key === '打款凭证'" :imgUrl="imgUrl"></ImgEnlarge>
           </Col>
         </Row>
       </div>
@@ -27,38 +28,46 @@
           columns: Const.payListColumn(this.showPayList),
           payList: [],
           showPop: false,
-          popObj: {}
+          popObj: {},
+          imgUrl: ''
         }
-    },
-    watch: {
-      details() {
-        let list = this.details && this.details.payDetailList
-        if (list) {
-          for (let val of list) {
-            val.orderPayprice = (this.details.orderPayprice - 0) / 100
-          }
-          this.payList = this.details.payDetailList
-        }
-      } 
     },
     props: ['details'],
     created() {
-
+      this.init()
     },
     components: {},
     methods: {
+      init() {
+        if (this.details.corpId !== undefined) {
+          let list = this.details.payDetailList
+          if (list) {
+            for (let val of list) {
+              val.orderPayprice = (this.details.orderPayprice - 0) / 100
+            }
+            this.payList = list
+          }
+        }
+      },
       showPayList(val) {
         if (val) {
           this.showPop = true
+          // 读取图片地址 url拼接
+          this.imgUrl = this.getUploadUrl + val.payVoucher
+          // this.$get(this.flyPath.overview, {
+          //   fileId: val.payVoucher
+          // }).then((res) => {
+          //   this.imgUrl = res.code === 1 ? res.data.base64 : ''
+          // })
           this.popObj = {
             '名称': val.accountName,
             '账户': val.accountNo,
             '付款时间': val.payTime,
-            '打款凭证': val.payVoucher
+            '打款凭证': ''
           }
           if (this.details.status === 4) {
-            this.popObj['审核失败原因'] = val.authMisc
-            this.popObj['审核时间'] = val.authTime
+            this.popObj['审核失败原因'] = this.details.payDetailList && this.details.payDetailList[0].authMisc
+            this.popObj['审核时间'] = this.details.payDetailList && this.details.payDetailList[0].authTime
           }
         }
       }
@@ -68,6 +77,12 @@
 <style lang="stylus" scoped>
 @import '~@/assets/stylus/index'
   #payList
+    mt(20px)
+    .pay_title
+      vertical(30px)
+      padl(10px)
+      bold()
+      fn(14px)
     .modal_cont
       width: 600px
       padding:20px

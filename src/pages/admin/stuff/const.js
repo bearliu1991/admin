@@ -17,7 +17,7 @@ export default {
     return {
       title: '操作',
       key: 'action',
-      width: 60,
+      minWidth: 60,
       align: 'center',
       render: (h, params) => {
         let actions = {
@@ -223,17 +223,17 @@ export default {
     {
       title: '姓名',
       key: 'name',
-      minWidth: 100
+      width: 70
     },
     {
       title: '手机号',
       key: 'mobile',
-      minWidth: 100
+      width: 110
     },
     {
       title: '部门',
       key: 'apartment',
-      minWidth: 120
+      width: 120
     },
     {
       title: '职务',
@@ -243,7 +243,7 @@ export default {
     {
       title: '分配坐席',
       key: 'seatStatus',
-      width: 80,
+      width: 70,
       render: (h, params) => {
         let data = params.row.seatStatus
         switch (data) {
@@ -262,7 +262,7 @@ export default {
     {
       title: '员工状态',
       key: 'status',
-      width: 130,
+      width: 120,
       render: (h, params) => {
         let data = params.row.status
         switch (data) {
@@ -304,7 +304,7 @@ export default {
     {
       title: '员工微信',
       key: 'accountNickName',
-      minWidth: 150,
+      width: 130,
       render: (h, params) => {
         let data = params.row
         switch (data.joinStatus) {
@@ -322,6 +322,16 @@ export default {
             return h('span', '--')
         }
       }
+    },
+    {
+      title: '加入时间',
+      key: 'addTime',
+      width: 90
+    },
+    {
+      title: '添加时间',
+      key: 'createTime',
+      width: 90
     }
     ]
   },

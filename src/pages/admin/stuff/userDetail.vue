@@ -6,7 +6,7 @@
     </div>
     <data-loading :dataSatau="dataSatau">
       <BaseInfo v-show="activeId === 0" ref="baseInfo" :height='height' :isEdit="isEdit" :details="details"></BaseInfo>
-      <RightSet v-show="activeId === 1" ref="rightSet" :isEdit="isEdit" :systems="systems"></RightSet>
+      <RightSet class="right_set" v-show="activeId === 1" ref="rightSet" :style="{height: height + 'px'}" :isEdit="isEdit" :systems="systems"></RightSet>
     </data-loading>
     <ul class="handles" v-if='!isEdit'>
       <li v-for="(item, key ,index) in actions" :key="index" @click="handle(key, item)">
@@ -164,7 +164,7 @@ export default {
         let id = this.userId
         let ids = rightSet.getSysId()
         if (!ids || !ids.length) {
-          this.$Message.warning('请至少选择一个权限')
+          this.$Message.error('请至少选择一个权限')
           return false
         }
         this.modifyUserRole({eeId: id, addRoleIds: ids}).then((res) => {
@@ -190,6 +190,8 @@ export default {
   height 100%
   width 100%
   relative()
+  .right_set
+    overflow-y:auto
   .switch
     border-bottom 1px solid #efefef
     width:100%

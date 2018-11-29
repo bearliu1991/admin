@@ -53,13 +53,12 @@
   </div>
 </template>
 <script>
-import { getToken, removeToken, removeCookie, removeCookieSession } from '@/utils/cookies'
 import { logout } from '@/api/query'
 import {mapActions} from 'vuex'
 export default {
   data() {
     return {
-      userInfo: getToken() || null,
+      userInfo: this.getToken() || null,
       userStatus: 1
     }
   },
@@ -88,20 +87,23 @@ export default {
     logout() {
       logout().then(data => {
         if (data.code === 1) {
-          removeToken()
-          removeCookieSession()
-          removeCookie('accountList')
-          removeCookie('currentCorp')
-          removeCookie('preAuthCode')
-          removeCookie('saveStepsData')
-          removeCookie('companyParams')
-          removeCookie('seatsInfo')
-          removeCookie('orderId')
-          removeCookie('corpId')
-          removeCookie('orderPayPrice')
-          removeCookie('isCreatCompany')
-          removeCookie('corpName')
-          removeCookie('nextOrderStep')
+          this.removeToken()
+          this.removeCookieSession()
+          this.removeCookie('accountList')
+          this.removeCookie('currentCorp')
+          this.removeCookie('preAuthCode')
+          this.removeCookie('saveStepsData')
+          this.removeCookie('companyParams')
+          this.removeCookie('seatsInfo')
+          this.removeCookie('orderId')
+          this.removeCookie('status')
+          this.removeCookie('corpId')
+          this.removeCookie('orderPayPrice')
+          this.removeCookie('isCreatCompany')
+          this.removeCookie('corpName')
+          this.removeCookie('nextOrderStep')
+          this.removeCookie('secondMenu')
+          this.removeCookie('mainMenu')
           this.$router.push({ name: 'login' })
         }
       })

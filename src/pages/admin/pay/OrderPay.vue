@@ -17,34 +17,34 @@
           <div class="total order-item">
             <div class="order-float">
               <span class="span1">付款合计</span>
-              <span class="span2 fixed-width">¥ {{newInfo.countPrice}}</span>
+              <span class="span2 fixed-width">¥ {{newPrice}}</span>
             </div>
           </div>
           <div class="discount order-item" v-if="type !== 'createCompany' && oldInfo.goodsName">
             <div class="order-float">
               <span class="span1">抵扣小计</span>
-              <span class="span2 fixed-width">¥ {{oldInfo.minusPrice}}</span>
+              <span class="span2 fixed-width">¥ {{oldPrice}}</span>
             </div>
           </div>
         </div>
         <div class="actual order-item">
           <div class="order-float">
             <span class="span1">实付款</span>
-            <span class="span2"><span class="fuhao">¥</span> {{newInfo.countPrice - (oldInfo.minusPrice||0)}}</span>
+            <span class="span2" v-if="calcPrice !== 'NaN'"><span class="fuhao">¥</span> {{calcPrice || 0}}元</span>
             <span class="span3"><Poptips width="217" content="实付款=付款小计-抵扣合计"></Poptips></span>
           </div>
         </div>
         <div class="order-company order-item">
           <div class="order-float">
             <span class="span1">订购企业</span>
-            <span class="span2 company-color">{{corpName}}</span>
+            <span class="span2 company-color">{{companyName}}</span>
           </div>
         </div>
       </div>
       <div class="submit">
         <div class="submit-left">
           <span class="check">
-            <Checkbox v-model="single">我已阅读并同意<span>《销大师在线订购协议》</span>，付款完成后可在发票管理中申请开票。</Checkbox>
+            <Checkbox v-model="single">我已阅读并同意<span><router-link :to="{name:'agreement'}" target="_blank">《迎客通在线订购协议》</router-link></span>，付款完成后可在发票管理中申请开票。</Checkbox>
           </span>
         </div>
         <div class="submit-right">
@@ -54,43 +54,65 @@
         </div>
       </div>
     </div>
+    <NewModal v-model="xiajia" header="套餐下架" confrim="重新购买" content="您所选的套餐刚刚已被下架，请重新选择其他套餐版本购买" :cancelBtn="false"></NewModal>
     <NewModal v-model="isOrder" header="订购提醒" confrim="去支付" content="当前企业有待付款订单，您可直接去支付或者重新订购" cancelText="重新订购" @ok="goPay" @cancel="restartPay"></NewModal>
+    <NewModal v-model="reloadPage" header="订购提醒" confrim="确认" content="当前套餐已发生变化，如果继续订购，请刷新当前页面。" cancelText="取消" @ok="refreshPage"></NewModal>
   </div>
 </template>
 <script>
 import Menus from './menus'
 import tablePay from './tablePay'
-import {getCurOrderDetail, saveOrderInfo, saveCorpCreateApplyForOrder} from '@/api/query'
-import {getCookie, setCookie} from '@/utils/cookies'
+import {
+  getCurOrderDetail,
+  saveOrderInfo,
+  saveCorpCreateApplyForOrder
+} from '@/api/query'
 export default {
   name: '',
   props: {
     type: {
       type: String,
       default: 'upgrade'
+    },
+    creatCorpName: {
+      type: String,
+      default: ''
     }
   },
   data() {
     return {
       isOrder: false,
+      reloadPage: false,
+      xiajia: false,
       single: true,
       newInfo: {},
       oldInfo: {},
+      originOldInfo: {},
       menuList: [],
       saveOrderData: {},
-      corpName: getCookie('corpName') || '',
       corpOrderData: {},
-      dateArr: [
-        {itemKey: "ValidDay", itemValue: "15", itemName: "15天"},
-        {itemKey: "ValidDay", itemValue: "180", itemName: "半年"},
-        {itemKey: "ValidDay", itemValue: "30", itemName: "1个月"},
-        {itemKey: "ValidDay", itemValue: "365", itemName: "一年"},
-        {itemKey: "ValidDay", itemValue: "60", itemName: "2个月"},
-        {itemKey: "ValidDay", itemValue: "7", itemName: "7天"},
-        {itemKey: "ValidDay", itemValue: "90", itemName: "3个月"}
-      ],
+      dateArr: [],
+      usingItem: null,
       // 用于展示不同的套餐背景图
       classList: ['bg0', 'bg1', 'bg2', 'bg3', 'bg4', 'disabled']
+    }
+  },
+  computed: {
+    newPrice() {
+      return (
+        this.newInfo.countPrice && this.insertPoint(this.newInfo.countPrice || 0)
+      )
+    },
+    oldPrice() {
+      return (
+        this.oldInfo.minusPrice && this.insertPoint(this.oldInfo.minusPrice)
+      )
+    },
+    calcPrice() {
+      return (this.newInfo.countPrice || 0) - (this.oldInfo.minusPrice || 0) < 0 ? '0.01' : this.insertPoint(this.newInfo.countPrice - (this.oldInfo.minusPrice || 0))
+    },
+    companyName() {
+      return this.creatCorpName || this.getCookie('corpName')
     }
   },
   created() {
@@ -99,14 +121,14 @@ export default {
   components: { Menus, tablePay },
   methods: {
     init() {
-      this.getDateArr()
+      this.ajaxRecordList()
       if (this.type === 'upgrade') {
         this.getCurOrderDetail()
       }
     },
     cancel() {
       if (this.type === 'createCompany') {
-        this.$router.push({name: 'company'})
+        this.$router.push({ name: 'company' })
       } else {
         this.$root.Bus.$emit('hideFullPageDrawer', false)
       }
@@ -114,40 +136,56 @@ export default {
     lastStep() {
       this.$emit('lastStep', 0)
     },
-    // 获取时间列表
-    getDateArr() {
-      this.ajaxDateList({itemKey: "ValidDay", limit: 9999, offset: 0}).then((res) => {
-        if (res.code === 1) {
-          this.dateArr = res.data.records
-          // 获取套餐列表
-          this.ajaxMenuList({corpId: this.getCookie('corpId')}).then((res) => {
-            if (res.code === 1) {
-              this.handleMenu(res.data)
-            }
-          })
-        }
-      })
+    refreshPage() {
+      location.reload()
     },
+    ajaxRecordList() {
+      // 获取套餐列表
+      this.ajaxMenuList({ corpId: this.getCookie('corpId') }).then(
+        res => {
+          if (res.code === 1) {
+            this.handleMenu(res.data)
+          }
+        }
+      )
+    },
+    // 获取时间列表
+    // getDateArr() {
+    //   this.ajaxDateList({ itemKey: 'ValidDay', limit: 9999, offset: 0 }).then(
+    //     res => {
+    //       if (res.code === 1) {
+    //         this.dateArr = res.data.records
+            
+    //       }
+    //     }
+    //   )
+    // },
     // 获取公司当前订购服务
     getCurOrderDetail() {
       let params = {
-        corpId: getCookie('corpId')
+        corpId: this.getCookie('corpId')
       }
       getCurOrderDetail(params).then(data => {
         if (data.code === 1) {
           if (data.data) {
-            this.oldInfo = {
+            this.originOldInfo = {
               goodsName: data.data.goodsName,
-              goodsPrice: data.data.goodsPrice / 100,
+              goodsDiscountsPrice: this.insertPoint(
+                data.data.goodsDiscountsPrice
+              ),
               goodsNum: data.data.goodsNum,
-              orderPayprice: data.data.orderPayprice / 100,
-              validTime: data.data.createTime + ' —— ' + data.data.endTime,
-              leftDay: data.data.leftDay,
-              minusPrice: data.data.minusPrice / 100
+              orderPayprice: this.insertPoint(data.data.orderPayprice),
+              validTime:
+                data.data.createTime.substring(0, 10) +
+                ' —— ' +
+                data.data.endTime.substring(0, 10),
+              leftDay: data.data.leftDay + '天',
+              minusPrice: data.data.minusPrice
             }
+            this.oldInfo = JSON.parse(JSON.stringify(this.originOldInfo))
           }
         } else {
-          this.$Message.warning(data.message)
+          this.$Message.error(data.message)
         }
       })
     },
@@ -156,16 +194,26 @@ export default {
       saveOrderInfo(params).then(data => {
         switch (data.code) {
           case 1:
-            this.$Message.success('提交订单成功')
-            setCookie('orderId', data.data.orderId)
-            this.$emit('submitOrder')
+            this.setCookie('orderId', data.data.orderId)
+            if (params.orderPayprice === 0) {
+              this.$emit('submitOrder', 2)
+              this.$emit('nextOrderStep', 1)
+            } else {
+              this.$emit('submitOrder', 1)
+            }
             break
           case 6620:
-            setCookie('orderId', data.data.orderId)
+            this.setCookie('orderId', data.data.orderId)
             this.isOrder = true
             break
+          case 2130:
+            this.reloadPage = true
+            break
+          case 6628:
+            this.xiajia = true
+            break    
           default:
-            this.$Message.warning(data.message)
+            this.$Message.error(data.message || '提交失败')
             break
         }
       })
@@ -175,13 +223,18 @@ export default {
       saveCorpCreateApplyForOrder(params).then(data => {
         switch (data.code) {
           case 1:
-            setCookie('orderId', data.data.orderId)
-            setCookie('corpId', data.data.corpId)
-            this.$Message.success('提交订单成功')
+            this.setCookie('orderId', data.data.orderId)
+            this.setCookie('corpId', data.data.corpId)
             this.$emit('submitOrder')
             break
+          case 2130:
+            this.reloadPage = true
+            break
+          case 6628:
+            this.xiajia = true
+            break     
           default:
-            this.$Message.warning(data.message)
+            this.$Message.error(data.message || '提交失败')
             break
         }
       })
@@ -189,21 +242,27 @@ export default {
     submit() {
       if (this.single) {
         if (this.type === 'createCompany') {
-          this.corpOrderData = getCookie('companyParams') || {}
+          this.corpOrderData = this.getCookie('companyParams') || {}
           this.saveOrderData.corpId = null
           this.saveOrderData.reOrder = null
           this.saveOrderData.packId = this.saveOrderData.packageId
-          this.saveOrderData.orderPayprice = (this.newInfo.countPrice - (this.oldInfo.minusPrice || 0)) * 100
+          this.saveOrderData.orderPayprice =
+            this.newInfo.countPrice - (this.oldInfo.minusPrice || 0) < 0
+              ? 1
+              : this.newInfo.countPrice - (this.oldInfo.minusPrice || 0)
           this.saveOrderData.packageId = null
           let params = Object.assign({}, this.corpOrderData, this.saveOrderData)
           this.saveCorpCreateApplyForOrder(params)
         } else {
           this.saveOrderData.reOrder = 0
-          this.saveOrderData.orderPayprice = (this.newInfo.countPrice - (this.oldInfo.minusPrice || 0)) * 100
+          this.saveOrderData.orderPayprice =
+            this.newInfo.countPrice - (this.oldInfo.minusPrice || 0) < 0
+              ? 1
+              : this.newInfo.countPrice - (this.oldInfo.minusPrice || 0)
           this.saveOrderInfo(this.saveOrderData)
         }
       } else {
-        this.$Message.warning('请阅读并同意《销大师在线订购协议》')
+        this.$Message.error('请阅读并同意《迎客通在线订购协议》')
       }
     },
     goPay() {
@@ -223,7 +282,7 @@ export default {
         recommendIdx： 推荐套餐的index
         recommendLeave: 推荐套餐的级别值leave
       */
-      let recommendIdx = list.findIndex((item) => {
+      let recommendIdx = list.findIndex(item => {
         return item.recommend === 1
       })
       let recommendLeave
@@ -232,28 +291,41 @@ export default {
         usingIdx 正在使用套餐的index
         usingLeave: 正在使用套餐的级别值leave
       */
-      let usingIdx = list.findIndex((item) => {
+      let usingIdx = list.findIndex(item => {
         return item.id === item.corpPackageId
       })
-      usingIdx = usingIdx > -1 ? usingIdx : 1
-      let usingLeave = list[usingIdx].leave
-
+      let usingLeave = -1
+      if (usingIdx > -1) {
+        this.usingItem = list[usingIdx]
+        usingLeave = list[usingIdx].leave
+      }
+      // recommendIdx = -1
       // 如果没有推荐的套餐
       if (recommendIdx === -1) {
-        let idx = list.findIndex((item) => {
-          return item.leave > usingLeave && item.group !== list[usingIdx].group
-        })
-        // 如果有比使用套餐级别大的套餐, 且该套餐不和使用中的套餐同组，则推荐套餐为该套餐
-        if (idx > -1) {
-          list[idx].recommend = true
-        } else { // 否则推荐套餐为正在使用中的套餐
-          list[usingIdx].recommend = true
+        if (usingIdx > -1) {
+          let idx = list.findIndex(item => {
+            return item.leave > usingLeave && item.group !== list[usingIdx].group
+          })
+          // 如果有比使用套餐级别大的套餐, 且该套餐不和使用中的套餐同组，则推荐套餐为该套餐
+          if (idx > -1) {
+            list[idx].recommend = 1
+          } else {
+            // 否则推荐套餐为正在使用中的套餐
+            list[usingIdx].recommend = 1
+          }
+        } else {
+          let menu = list.find(item => {
+            return item.isFreeMenu === false
+          })
+          menu.recommend = 1
+          usingLeave = menu.leave
         }
-      } else { // 如果有推荐的套餐
+      } else {
+        // 如果有推荐的套餐
         // 如果使用中的套餐级别大于推荐的级别，则推荐的套餐为使用中的套餐, 推荐图标不显示（notShowRecommend控制)
-        if (usingLeave > recommendLeave) {
-          list[recommendIdx].recommend = false
-          list[usingIdx].recommend = true
+        if (usingIdx > -1 && (usingLeave > recommendLeave)) {
+          list[recommendIdx].recommend = 2
+          list[usingIdx].recommend = 1
           list[usingIdx].notShowRecommend = true
         }
       }
@@ -261,28 +333,25 @@ export default {
       for (let item of list) {
         // 转换时间单位
         item.dateUnit = this.transferUnit(item)
-
-        let isGroup = list.find((val) => {
-          return (val.group === item.group && (val.id !== item.id))
+        let isGroup = list.find(val => {
+          return val.group && (val.group === item.group) && (val.id !== item.id)
         })
         if (isGroup) {
           let allFalse = true
           for (let n of arr) {
-            if (n.group && (n.group === item.group)) {
+            if (n.group && n.group === item.group) {
               allFalse = false
               n.arr.push(item)
             }
           }
           if (allFalse) {
-            arr.push(
-              {
-                group: item.group,
-                name: item.name,
-                summary: item.summary,
-                arr: [item],
-                mostBuyNum: item.mostBuyNum
-              }
-            )
+            arr.push({
+              group: item.group,
+              name: item.name,
+              summary: item.summary,
+              arr: [item],
+              mostBuyNum: item.mostBuyNum
+            })
           }
         } else {
           arr.push(item)
@@ -303,23 +372,27 @@ export default {
           val.isVailUse = val.arr[val.arr.length - 1].leave >= usingLeave
           val.maxLeave = val.arr[val.arr.length - 1].leave
           val.minLeave = val.arr[0].leave
-          !val.isVailUse && (val.content = '该版本低于当前使用的版本, 不支持续费升级')
-          val.recommend = val.arr.findIndex((item) => {
-            return item.recommend === true
-          }) > -1
-          isUsing = val.arr.find((item) => {
+          !val.isVailUse &&
+            (val.content = '该版本低于当前使用的版本, 不支持续费升级')
+          val.recommend =
+            val.arr.findIndex(item => {
+              return item.recommend === 1
+            }) > -1
+          isUsing = val.arr.find(item => {
             return item.corpPackageId === item.id
           })
-          val.notShowRecommend = val.arr.findIndex((item) => {
-            return item.notShowRecommend === true
-          }) > -1
+          val.notShowRecommend =
+            val.arr.findIndex(item => {
+              return item.notShowRecommend === true
+            }) > -1
         } else {
           isUsing = val.corpPackageId === val.id
           val.isVailUse = val.leave >= usingLeave
-          !val.isVailUse && (val.content = '该版本低于当前使用的版本, 不支持续费升级')
+          !val.isVailUse &&
+            (val.content = '该版本低于当前使用的版本, 不支持续费升级')
           if (val.isFreeMenu && !val.freePackageSelect) {
             val.isVailUse = false
-            val.content = "您已使用过" + val.name + ', 不可重复订购。'
+            val.content = '您已使用过' + val.name + ', 不可重复订购。'
           }
         }
         val.isUsing = isUsing
@@ -329,30 +402,45 @@ export default {
       })
       // 为各个套餐添加不同的class,用于背景颜色区别
       arr.map((item, idx) => {
-        return !item.isVailUse && (item.className = this.classList[this.classList.length - 1])
+        return (
+          !item.isVailUse &&
+          (item.className = this.classList[this.classList.length - 1])
+        )
       })
       this.menuList = arr.slice()
     },
     transferUnit(item) {
-      let result = this.dateArr.find((val) => {
-        return val.itemValue - 0 === item.validDay - 0
-      })
-      return result ? result.itemName : '年'
+      if (!(item.timeUnitNum + '' + item.timeUnit) || (item.timeUnitNum + '' + item.timeUnit === '1年')) return '年'
+      return item.timeUnitNum + '' + item.timeUnit
     },
     getCurMenu(obj, num) {
-      this.saveOrderData = {
-        corpId: getCookie('corpId'),
-        packageId: obj.id,
-        packageNum: num,
-        orderPayprice: '',
-        reOrder: 0
-      }
-      this.newInfo = {
-        name: obj.name,
-        price: obj.price / 100,
-        num: num,
-        dateUnit: obj.dateUnit,
-        countPrice: obj.discountsPrice * num / 100
+      console.log(obj)
+      if (obj) {
+        if (this.usingItem) {
+          if (this.usingItem.group === obj.group) {
+            this.oldInfo = {
+              minusPrice: 0
+            }
+          } else {
+            this.oldInfo = JSON.parse(JSON.stringify(this.originOldInfo))
+          }
+        }
+        this.saveOrderData = {
+          corpId: this.getCookie('corpId'),
+          packageId: obj.id,
+          packageNum: num,
+          orderPayprice: '',
+          reOrder: 0,
+          packageValidDay: obj.validDay,
+          packageDiscountsPrice: obj.discountsPrice
+        }
+        this.newInfo = {
+          name: obj.name,
+          discountsPrice: this.insertPoint(obj.discountsPrice),
+          num: num,
+          dateUnit: obj.timeUnitNum * num + obj.timeUnit,
+          countPrice: obj.discountsPrice * num
+        }
       }
     }
   }
@@ -414,8 +502,12 @@ export default {
         margin-top 14px
         .check
           span
-            color: #409eff
-            cursor pointer
+            a
+              color #409eff
+              cursor pointer
+              &:hover
+                color #409eff
+                cursor pointer
       .submit-right
         float right
         .cancel

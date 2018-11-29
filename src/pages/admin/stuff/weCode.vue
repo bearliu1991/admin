@@ -59,13 +59,13 @@ export default {
       ext: '.jpg',
       form: '',
       base64qrcode: '',
-      uploadUrl: process.env.API_ROOT + "/uploadfile",
-      downloadUrl: process.env.API_ROOT + "/downloadfile"
+      uploadUrl: this.Path.uploadfile,
+      downloadUrl: this.Path.downloadfile,
     }
   },
   computed: {
       ...mapGetters({
-        'corInfo': 'survey/getLoginCompany'
+        'corInfo': 'survey/getSaveloginCompany'
       })
   },
   props: ['uploadurl', 'downloadurl','datas', 'curApart'],
@@ -91,9 +91,9 @@ export default {
         html2canvas(document.querySelector("#postcard")).then(canvas => {
             const dataURL = canvas.toDataURL("image/png" + this.ext)
             if (this.isIE()) {
-                // ie   
+                // ie
                 this.commit(dataURL)
-            } else {           
+            } else {
                 this.downloadFile(this.datas.nickname, dataURL)
             }
         })
@@ -151,7 +151,7 @@ export default {
       padding:5px 0
   .code_part
     border_()
-    padding:20px
+    padding:40px 50px
     margin:40px
     mt(5px)
     mb(10px)
@@ -159,20 +159,23 @@ export default {
     box-shadow 0px 2px 10px 0 #ddd
     overflow:hidden
     .left_p
+      width 250px
       fl()
       div
         mb(30px)
         h3
-          mb(5px)
+          mb(13px)
       ul
         li
-          height:24px
+          height:27px
           p
             fl()
             width:80px
           span
+            width 170px
             fl()
             alignL()
+            ellipsis()
     .right_p
       fr()
       .img

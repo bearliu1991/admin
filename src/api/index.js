@@ -6,7 +6,6 @@ import {
   getToken,
   setToken
 } from '@/utils/cookies'
-const apiHost = process.env.API_ROOT
 const service = axios.create({
   withCredentials: false, // 允许携带cookie
   baseURL: process.env.API_ROOT
@@ -36,7 +35,6 @@ function getData(url, paramsData) {
     }).then((res) => {
       resolve(res.data)
     }).catch((err) => {
-      console.log(err)
       let res = err.response
       if (res) {
         reject(err)
@@ -59,7 +57,7 @@ function getPostData(url, paramsData) {
 }
 function apiGetSessionId() {
   return new Promise((resolve, reject) => {
-    service.get(apiHost + '/getSessionId').then((res) => {
+    service.get('/api/getSessionId').then((res) => {
       res.data.sessionId = res.data.sessionId + 'F'
       resolve(res.data)
     }).catch((err) => {
@@ -71,7 +69,7 @@ function apiGetSessionId() {
   })
 }
 // get 请求
-function getApiAxios(url, params) {
+function getApiAxios(url, params, isSaveToken) {
   if (params) {
     params = filterNull(params)
   } else {
@@ -81,9 +79,11 @@ function getApiAxios(url, params) {
   let sessionId = getCookieSession()
   let timestamp = new Date()
   obj.timestamp = timestamp.getTime()
-  let token = getToken()
-  if (token) {
-    setToken(token, 0.5)
+  if (!isSaveToken) {
+    let token = getToken()
+    if (token) {
+      setToken(token, 0.5)
+    }
   }
   if (sessionId) {
     obj.sessionId = sessionId
@@ -124,12 +124,10 @@ function postApiAxios(url, params) {
       setCookieSession(data.sessionId, 0.5)
       obj.sessionId = data.sessionId
       let paramsData = Object.assign({}, params, obj)
-      console.log(paramsData)
       return getPostData(url, paramsData)
     })
   }
 }
-
 // function markLogin(res) {
 //   if (res.config.url.includes('adminUser/getSession') && res.data.code === 1) {
 //     setCookie("loginFlag", "1", 1 / 24 / 2)
@@ -162,7 +160,6 @@ function httpPost(url, args) {
       })
   })
 }
-
 service.interceptors.request.use(
   config => {
     return config
@@ -189,14 +186,14 @@ service.interceptors.response.use(
   })
 
 export default {
-  get: function(url, params) {
-    return getApiAxios(url, params)
+  get: function(url, params, isSaveToken) {
+    return getApiAxios(url, params, isSaveToken)
   },
   post: function(url, params) {
     return postApiAxios(url, params)
   },
-  $get: function(url, params) {
-    return getApiAxios(url, params)
+  $get: function(url, params, isSaveToken) {
+    return getApiAxios(url, params, isSaveToken)
   },
   $post: function (url, params) {
     return httpPost(url, params)

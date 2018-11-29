@@ -90,7 +90,7 @@
                     <div class="yestoday" :class="{active: selectTime==1}" @click="changeDate(1)">昨日</div>
                   </div>
                 </div>
-                <data-loading :data-satau="keyIndicatorsData.loadingDataStatu">
+                <data-loading :data-satau="keyIndicatorsData.loadingDataStatu" @reload="reload">
                   <div class="part-content">
                     <div class="part-float">
                       <div class="part-center">
@@ -179,14 +179,14 @@
               <div class="left-wrapper info">
                 <div class="name">{{saveloginCompany.corpName}}</div>
                 <div class="date">
-                  <div>{{saveloginCompany.currPackageName}}</div>
-                  <div>{{corpPackageData.endDate}} 到期</div>
+                  <div :title="saveloginCompany.packageName">{{saveloginCompany.packageName}}</div>
+                  <div>{{saveloginCompany.endDate}} 到期</div>
                 </div>
                 <!-- <div class="tips-info" v-show="corpPackageData.packageName=='免费'">
                   当前为免费试用版，升级套餐，享更多特权服务
                 </div> -->
                 <div class="tips-info">
-                  当前套餐为{{saveloginCompany.currPackageName}}，升级套餐，享更多特权服务
+                  当前套餐为{{saveloginCompany.packageName}}，升级套餐，享更多特权服务
                 </div>
                 <div class="butn" @click="upgrade">
                   立即升级
@@ -256,8 +256,7 @@
 </template>
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import { getToken, setCookie, getCookie } from '@/utils/cookies'
-import { getKeyIndicators, checkAppIdNum, getAuthUrl } from '@/api/query'
+import { getKeyIndicators, checkAppIdNum, getAuthUrl, getCorpStatisticsInfo } from '@/api/query'
 
 export default {
   name: 'survey',
@@ -290,7 +289,7 @@ export default {
           link: '使用帮助'
         }
       ],
-      userInfo: getToken() || null,
+      userInfo: this.getToken() || null,
       selectTime: 0,
       showTips: true,
       fansNum: '',
@@ -308,7 +307,6 @@ export default {
       )
     },
     ...mapGetters({
-      corpPackageData: 'survey/getCorpPackage',
       corpInfoData: 'survey/getCorpInfo',
       keyIndicatorsData: 'survey/getKeyIndicators',
       saveloginCompany: 'survey/getSaveloginCompany'
@@ -325,14 +323,33 @@ export default {
     // })
     // this.getAuthUrl()
     // this.checkAppIdNum()
+    this.getCorpStatisticsInfo()
   },
   mounted() {},
   methods: {
+    // 获取公司统计信息
+    getCorpStatisticsInfo() {
+      let obj = {
+        corpId: this.getCookie('currentCorp').applyId
+      }
+      getCorpStatisticsInfo(obj).then(data => {
+          let corpInfoData = data.data || {}
+          if (data.code === 1) {
+            corpInfoData.loadingDataStatu = 2
+            this.setCorpInfo(Object.assign({}, this.corpInfoData, corpInfoData))
+          } else {
+            corpInfoData.loadingDataStatu = 3
+            this.setCorpInfo(Object.assign({}, this.corpInfoData, corpInfoData))
+          }
+        }).catch(() => {
+          this.setCorpInfo({ loadingDataStatu: 3 })
+        })
+    },
     // 获得关键指标
     getKeyIndicators(date) {
       let obj = {
         time: date,
-        appAccountId: this.userInfo.defaultWechatAccountid
+        appAccountId: null
       }
       this.setKeyIndicators({loadingDataStatu: 1})
       getKeyIndicators(obj).then(data => {
@@ -348,6 +365,9 @@ export default {
         this.setKeyIndicators({loadingDataStatu: 3})
       })
     },
+    reload() {
+      this.getKeyIndicators(this.selectTime)
+    },
     getAuthUrl() {
       let params = {
         redirectUrl: this.constRedirectUrl,
@@ -357,9 +377,14 @@ export default {
       getAuthUrl(params).then(data => {
         if (data.code === 1) {
           this.thirdplatUrl = data.data.url
-          location.href = this.thirdplatUrl
-          setCookie('preAuthCode', data.data.preAuthCode)
+          // location.href = this.thirdplatUrl
+          this.skipUrl(this.thirdplatUrl)
+          this.setCookie('preAuthCode', data.data.preAuthCode)
+        } else {
+          this.$Message.error('获取授权url失败')
         }
+      }).catch(() => {
+        this.$Message.error('获取授权url失败')
       })
     },
     checkAppIdNum() {
@@ -418,8 +443,8 @@ export default {
       // }
     },
     upgrade() {
-      let corpId = getCookie('currentCorp').applyId
-      let corpName = getCookie('currentCorp').corpName
+      let corpId = this.getCookie('currentCorp').applyId
+      let corpName = this.getCookie('currentCorp').corpName
       let obj = {
         corpId: corpId,
         corpName: corpName
@@ -438,7 +463,8 @@ export default {
     },
     ...mapActions({
       setKeyIndicators: 'survey/setKeyIndicators',
-      setPayStatu: 'pay/setPayStatu'
+      setPayStatu: 'pay/setPayStatu',
+      setCorpInfo: 'survey/setCorpInfo'
     })
   },
   components: {},

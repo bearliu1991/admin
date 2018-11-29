@@ -8,10 +8,10 @@
           <i>{{item}}</i>
         </li>
       </ul>
-      <div class="split_line"></div>
+      <div class="split_line" v-if='getData("accountNo") && getData("payVoucher")'></div>
       <div v-if='getData("payVoucher")'>
         <p>付款凭证</p>
-        <ImgEnlarge :imgUrl='getData("payVoucher")' class="img" width="155px" height="95px" largeW="890px" largeH="500px"></ImgEnlarge>
+        <ImgEnlarge :imgUrl='imgUrl' class="img" width="155px" height="95px" largeW="890px" largeH="500px"></ImgEnlarge>
       </div>
     </div>
     <RealPay :realPay="details.orderPayprice / 100" :status="details.status" class="fr"></RealPay>
@@ -22,7 +22,9 @@
   export default {
     name: 'payImg',
     data() {
-      return {}
+      return {
+        imgUrl: ''
+      }
     },
     props: {
       realPay: {
@@ -33,7 +35,9 @@
         type: Object
       }
     },
-    created() {},
+    created() {
+      this.getImgUrl()
+    },
     methods: {
       detailInfo() {
         return {
@@ -44,9 +48,20 @@
       },
       getData(name) {
         return this.details.payDetailList.length ? this.details.payDetailList[0][name] : ''
-      }
+      },
+      getImgUrl() {
+        if (this.getData("payVoucher")) {
+          // 读取图片地址 url拼接
+          this.imgUrl = this.getUploadUrl + this.getData("payVoucher")
+          // this.$get(this.flyPath.overview, {
+          //   fileId: this.getData("payVoucher")
+          // }).then((res) => {
+          //   this.imgUrl = res.code === 1 ? res.data.base64 : ''
+          // })
+        } 
+      } 
     },
-    components: {RealPay},
+    components: {RealPay}
   }
 </script>
 <style lang="stylus" scoped>

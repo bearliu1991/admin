@@ -1,6 +1,6 @@
 <template>
   <div id="modals">
-    <Modal :title="modalTitle" v-model="isShow" class-name="models-center">
+    <Modal :title="modalTitle" v-model="isShow" class-name="models-center" @on-cancel="cancel">
       <div v-html="content"></div>
       <div slot="footer">
         <div v-if="!noFooter">
@@ -42,7 +42,7 @@
 </script>
 <style lang="stylus">
 @import '~@/assets/stylus/index'
-  .models-center
+  .models-center.ivu-modal-wrap
     top: 50%
     left: 50%
     transform translate(-50%, -50%)

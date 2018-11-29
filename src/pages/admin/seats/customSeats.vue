@@ -62,7 +62,6 @@
 </template>
 <script>
 import { mapActions, mapGetters } from 'vuex'
-import { getCookie } from '@/utils/cookies'
 import UploadImg from '@/components/UploadImg'
 export default {
   props: {
@@ -81,9 +80,9 @@ export default {
     return {
       copyArr: [],
       seatsName: '',
-      accountList: getCookie('accountList') || [],
+      accountList: this.getCookie('accountList') || [],
       customAccount: [],
-      seatsInfo: getCookie('seatsInfo'),
+      seatsInfo: this.getCookie('seatsInfo'),
       appAccountId: this.appAccountIds
     }
   },
@@ -156,7 +155,7 @@ export default {
       for (let index = 0; index < this.customAccount.length; index++) {
         let customAccount = this.customAccount[index]
         if (customAccount.isError) {
-          this.$Message.warning('坐席昵称不能为空')
+          this.$Message.error('坐席昵称不能为空')
           return false
         }
       }

@@ -12,24 +12,24 @@ export default {
           name: '公众号',
           list: [
             {
-              name: 'tencentManage',
-              text: '公众号管理'
+              menuUrl: 'tencentManage',
+              menuName: '公众号管理'
             },
             {
-              name: '',
-              text: '自定义菜单'
+              menuUrl: '',
+              menuName: '自定义菜单'
             },
             {
-              name: '',
-              text: '个性化菜单'
+              menuUrl: '',
+              menuName: '个性化菜单'
             },
             {
-              name: '',
-              text: '素材管理'
+              menuUrl: '',
+              menuName: '素材管理'
             },
             {
-              name: '',
-              text: '自动回复'
+              menuUrl: '',
+              menuName: '自动回复'
             }
           ]
         },
@@ -37,20 +37,20 @@ export default {
           name: '设置',
           list: [
             {
-              name: 'seatSetting',
-              text: '坐席设置'
+              menuUrl: 'seatSetting',
+              menuName: '坐席设置'
             },
             {
-              name: 'records',
-              text: '订单记录'
+              menuUrl: 'records',
+              menuName: '订单记录'
             },
             {
-              name: '',
-              text: '发票管理'
+              menuUrl: '',
+              menuName: '发票管理'
             },
             {
-              name: 'corpInfo',
-              text: '企业信息'
+              menuUrl: 'corpInfo',
+              menuName: '企业信息'
             }
           ]
         }
@@ -59,7 +59,8 @@ export default {
   },
   computed: {
     ...mapGetters({
-      routerInfo: 'nav/getRouterInfo'
+      routerInfo: 'nav/getRouterInfo',
+      allSecondObj: 'nav/getAllSecondObj'
     })
   },
   methods: {
@@ -82,9 +83,9 @@ export default {
       }
     },
     'routerInfo.path'(val) {
-      for (let k in this.secondMenu) {
+      for (let k in this.allSecondObj) {
         if (val.indexOf(k) >= 0) {
-          this.setSecondMenu(this.secondMenu[k] || [])
+          this.setSecondMenu(this.allSecondObj[k] || [])
         }
       }
     }

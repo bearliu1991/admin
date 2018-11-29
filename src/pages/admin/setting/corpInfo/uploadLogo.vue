@@ -12,7 +12,7 @@
 </template>
 <script>
 import FileUpload from './upload'
-const ROOT = process.env.API_ROOT
+const ROOT = '/api'
 export default {
   name: 'uploadLogo',
   props: {
@@ -65,6 +65,7 @@ export default {
   methods: {
     selectFile() {
       let owlyUpload = this.$refs.upload
+      console.log(this.$refs.upload)
       owlyUpload.click()
     },
     getFile(e) {
@@ -77,11 +78,12 @@ export default {
       let uploadfile = e.target.files[0]
       let formData = new FormData()
       if (uploadfile.size > this.limitSize * 1024 * 1024) {
-        this.$Message.warning(`文件大小不能超过${this.limitSize}M`)
+        this.$Message.error(`文件大小不能超过${this.limitSize}M`)
         return
       }
       if (!uploadfile) return
-      formData.append('logo', uploadfile)
+      formData.append('file', uploadfile)
+      console.log(this.uploadUrl)
       this.$post(this.uploadUrl, formData)
         .then(res => {
           if (res.data.code === 1) {
@@ -89,11 +91,13 @@ export default {
             let obj = {
               logo: res.data.data
             }
-            this.$get(this.fylPath.updateCorpLogo, obj).then(data => {
+            this.$get(this.flyPath.updateCorpLogo, obj).then(data => {
               if (data.code === 1) {
+                this.$Message.success('保存成功')
                 this.readImage(res.data.data)
                 this.uploadSucess(res.data.data)
               } else {
+                this.$Message.error('保存失败')
                 this.uploadFail(data.message)
               }
             })
@@ -127,11 +131,13 @@ export default {
       let obj = {
         logo: data.data
       }
-      this.$get(this.fylPath.updateCorpLogo, obj).then(res => {
+      this.$get(this.flyPath.updateCorpLogo, obj).then(res => {
         if (res.code === 1) {
+          this.$Message.success('保存成功')
           this.readImage(data.data)
           this.uploadSucess(data.data)
         } else {
+          this.$Message.error('保存失败')
           this.uploadFail(data.message)
         }
       })

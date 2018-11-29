@@ -5,7 +5,7 @@ export default {
     '单价',
     '数量',
     '订购人微信',
-    '实付款',
+    '实付款(元)',
     '订单状态',
     '交易操作'
   ],
@@ -15,11 +15,11 @@ export default {
     '数量',
     '订购人微信',
     '服务期限',
-    '小计'
+    '小计(元)'
   ],
   originOrderColumn: [
     '订购服务',
-    '单价',
+    '单价(元)',
     '数量',
     '实付款(元)',
     '套餐有效时间',
@@ -41,7 +41,7 @@ export default {
       key: 'payStatus',
       render(h, params) {
         let data = params.row
-        let text = data.payStatus === 1 ? '已付款' : data.payStatus === 2 ? '交易关闭' : '待付款'
+        let text = data.payStatus === 1 ? '交易成功' : '已提交'
         return h('span', text)
       }
     },
@@ -54,7 +54,7 @@ export default {
       key: 'payType',
       render(h, params) {
         let data = params.row
-        let text = data.payType === 1 ? '微信支付' : data.payType === 2 ? '支付宝支付' : '银行汇款'
+        let text = data.payType === 1 ? '微信公众号支付' : data.payType === 2 ? '支付宝支付' : data.payType === 3 ? '银行汇款' : '微信H5支付'
         return h('span', text)
       }
     },

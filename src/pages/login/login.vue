@@ -88,7 +88,6 @@
 import {
   logout
 } from '@/api/query'
-import { removeToken, getToken } from '@/utils/cookies'
 import {mapActions} from 'vuex'
 import CommonFooter from '@/components/CommonFooter'
 import TmpQrcode from '@/components/TmpQrcode'
@@ -96,7 +95,7 @@ export default {
   data() {
     return {
       // 1 成功 2 过期
-      userInfo: getToken() || null,
+      userInfo: this.getToken() || null,
     }
   },
   created() {
@@ -108,7 +107,7 @@ export default {
     logout() {
       logout().then(data => {
         if (data.code === 1) {
-          removeToken()
+          this.removeToken()
         }
       })
     },

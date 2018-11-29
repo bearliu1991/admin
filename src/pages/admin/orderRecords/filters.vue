@@ -7,7 +7,7 @@
     <div>
       <span class="label">订单状态</span>
       <Select class="select_item item" v-model="selectVal" style="width:108px">
-        <Option v-for="(item, index) in statusList" :value="item.itemValue - 0" :key="index">{{item.itemName}}</Option>
+        <Option v-for="(item, index) in statusList" :value="item.itemValue" :key="index">{{item.itemName}}</Option>
       </Select>
     </div>
     <div>
@@ -37,7 +37,7 @@
           return {
             createTimeStr: this.timeGet(),
             orderId: this.orderId,
-            orderStatus: this.selectVal
+            orderStatus: this.selectVal === 1 ? null : this.selectVal
           }
         },
         timeGet() {
